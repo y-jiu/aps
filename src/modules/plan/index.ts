@@ -8,8 +8,7 @@ export interface PlanState {
   selectedPlanState: string;
   selectedPlanBomState: string;
   day_planBOM: {
-    startDay: string;
-    endDay: string;
+    day: Date | null;
   };
   facilities: Facility[];
   loading: boolean;
@@ -23,6 +22,7 @@ export interface PlanState {
   };
   isExpanded: boolean;
   filterQuery: any;
+  planList: any[];
 }
 
 export const initialState: PlanState = {
@@ -31,8 +31,7 @@ export const initialState: PlanState = {
   selectedPlanState: '',
   selectedPlanBomState: '',
   day_planBOM: {
-    startDay: '',
-    endDay: ''
+    day: null
   },
   facilities: [],
   loading: false,
@@ -45,7 +44,8 @@ export const initialState: PlanState = {
     startDay: null,
     endDay: null
   },
-  filterQuery: {}
+  filterQuery: {},
+  planList: []
 };
 
 // Action Types
@@ -67,6 +67,7 @@ const UPDATE_PROCESS_ORDER = 'plan/UPDATE_PROCESS_ORDER';
 const SET_DAY_PLAN_BOM = 'plan/SET_DAY_PLAN_BOM';
 const SET_IS_EXPANDED = 'plan/SET_IS_EXPANDED';
 const SET_FILTER_QUERY = 'plan/SET_FILTER_QUERY';
+const RECEIVE_PLAN_LIST = 'plan/RECEIVE_PLAN_LIST';
 
 // Action Creators
 export const setPlanData = (planData: any[]) => ({
@@ -145,7 +146,7 @@ export const updateProcessOrder = (processes: Process[]) => ({
   processes
 });
 
-export const setDayPlanBOM = (payload: { startDay: Date; endDay: Date }) => ({
+export const setDayPlanBOM = (payload: { day: Date }) => ({
   type: SET_DAY_PLAN_BOM,
   payload
 });
@@ -160,15 +161,20 @@ export const setFilterQuery = (filterQuery: any) => ({
   filterQuery
 });
 
+export const receivePlanList = (planList: any) => ({
+  type: RECEIVE_PLAN_LIST,
+  planList
+});
+
 // Thunks
-export const getPlanList = (dates: { start: string; end: string }) => async (dispatch: Dispatch) => {
-  try {
-    const response = await PlanAPIUtil.getPlanList(dates);
-    dispatch(setPlanData(response.data));
-  } catch (error) {
-    console.error('Failed to fetch plan list:', error);
-  }
-};
+// export const getPlanList = (dates: { start: string; end: string }) => async (dispatch: Dispatch) => {
+//   try {
+//     const response = await PlanAPIUtil.getPlanList(dates);
+//     dispatch(setPlanData(response.data));
+//   } catch (error) {
+//     console.error('Failed to fetch plan list:', error);
+//   }
+// };
 
 export const planUpdateState = (payload: { id: string; state: string }) => async (dispatch: Dispatch) => {
   try {
@@ -296,10 +302,27 @@ export const initializeDates = () => (dispatch: Dispatch) => {
     nextMonth.setMonth(today.getMonth() + 1);
     
     dispatch(setDayPlanBOM({
-      startDay: today,
-      endDay: nextMonth
+      day: today
     }));
+    
   };
+
+export const createPlan = (data: any) => async (dispatch: Dispatch) => {
+  const response = await PlanAPIUtil.createPlan(data);
+  console.log(response.data);
+  dispatch(receivePlanList(response.data));
+};
+
+export const getPlanByDate = (date: string) => async (dispatch: Dispatch) => {
+  const response = await PlanAPIUtil.getPlanByDate(date);
+  dispatch(receivePlanList(response.data));
+};
+
+export const getPlanByMonth = (year: string, month: string) => async (dispatch: Dispatch) => {
+  const response = await PlanAPIUtil.getPlanByMonth(year, month);
+  dispatch(receivePlanList(response.data));
+};
+
 // Reducer
 const reducer = (state: PlanState = initialState, action: ActionTypes) => {
   Object.freeze(state);
@@ -359,12 +382,17 @@ const reducer = (state: PlanState = initialState, action: ActionTypes) => {
     case SET_DAY_PLAN_BOM:
       return {
         ...newState,
-        day: action.payload
+        day_planBOM: action.payload
       };
     case SET_IS_EXPANDED:
       return {
         ...newState,
         isExpanded: action.isExpanded
+      };
+    case RECEIVE_PLAN_LIST:
+      return {
+        ...newState,
+        planDatas: action.planList
       };
     default:
       return state;

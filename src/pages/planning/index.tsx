@@ -42,9 +42,9 @@ const Planning: React.FC = () => {
         <DateHeader />
         <FlexContainer>
           <PlanTable onFindEvent={findEventHandler} />
-          <BOMWrapper>
+          {/* <BOMWrapper>
             <BOM />
-          </BOMWrapper>
+          </BOMWrapper> */}
         </FlexContainer>
       </ContentWrapper>
 

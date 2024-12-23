@@ -10,7 +10,7 @@ export const axiosJSON = axios.create({
   withCredentials: false,
   headers: {
     Accept: 'application/json',
-    'Content-Type': 'application/x-www-form-urlencoded'
+    'Content-Type': 'application/json'
   },
 })
 
@@ -25,3 +25,16 @@ axiosJSON.interceptors.request.use(
   },
   (error) => Promise.reject(error),
 )
+
+axiosJSON.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('authToken');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  },
+);

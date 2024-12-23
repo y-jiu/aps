@@ -12,19 +12,36 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from 'react-i18next';
 import FilterPopup from './components/filterPopup';
 import { FilterConfig } from './components/filterPopup';
+import { createPlan } from '../../modules/plan';
+import { AnyAction } from 'redux';
+import { ThunkDispatch } from 'redux-thunk';
 
 // Add type definition for the fixed columns
+// type SalesRow = {
+//   '업체명': string;
+//   '품명': string;
+//   'L/N': string;
+//   '소재 품번': string;
+//   '소재 수량': number;
+//   '가공 품번': string;
+//   '가공 수량': number;
+//   '출하일자': string;
+//   '출하시간': string;
+//   '비고': string;
+// }
+
 type SalesRow = {
-  '업체명': string;
-  '품명': string;
-  'L/N': string;
-  '소재 품번': string;
-  '소재 수량': number;
-  '가공 품번': string;
-  '가공 수량': number;
-  '출하일자': string;
-  '출하시간': string;
-  '비고': string;
+  plan_date?: string;
+  company_name: string;
+  name: string;
+  lot: string;
+  material_name: string;
+  material_amount: number;
+  product_name: string;
+  plan_amount: number;
+  deadline_date: string;
+  deadline_time: string;
+  note: string;
 }
 
 const excelDateToJSDate = (excelDate: number) => {
@@ -51,34 +68,46 @@ const Sales = () => {
   const [renderedRows, setRenderedRows] = React.useState<any[]>([]);
 
   // Define fixed column order
-  const fixedColumnOrder = [
-    '업체명',
-    '품명',
-    'L/N',
-    '소재 품번',
-    '소재 수량',
-    '가공 품번',
-    '가공 수량',
-    '출하일자',
-    '출하시간',
-    '비고'
-  ];
+  const fixedColumnOrder: { [key: string]: string } = {
+    '업체명': 'company_name',
+    '품명': 'name',
+    'L/N': 'lot',
+    '소재 품번': 'material_name',
+    '소재 수량': 'material_amount',
+    '가공 품번': 'product_name',
+    '가공 수량': 'plan_amount',
+    '출하일자': 'deadline_date',
+    '출하시간': 'deadline_time',
+    '비고': 'note'
+  }
+  //   '업체명',
+  //   '품명',
+  //   'L/N',
+  //   '소재 품번',
+  //   '소재 수량',
+  //   '가공 품번',
+  //   '가공 수량',
+  //   '출하일자',
+  //   '출하시간',
+  //   '비고'
+  // ];
 
   // Replace rowNames state with fixed column order
-  const [rowNames] = React.useState<string[]>(fixedColumnOrder);
+  const [rowNames] = React.useState<string[]>(Object.keys(fixedColumnOrder));
 
   const [insertIndex, setInsertIndex] = React.useState<number | null>(null);
   const [newRow, setNewRow] = React.useState<SalesRow>({
-    '업체명': '',
-    '품명': '',
-    'L/N': '',
-    '소재 품번': '',
-    '소재 수량': 0,
-    '가공 품번': '',
-    '가공 수량': 0,
-    '출하일자': '',
-    '출하시간': '',
-    '비고': ''
+    // plan_date: '',
+    company_name: '',
+    name: '',
+    lot: '',
+    material_name: '',
+    material_amount: 0,
+    product_name: '',
+    plan_amount: 0,
+    deadline_date: '',
+    deadline_time: '',
+    note: ''
   });
   const [insertRow, setInsertRow] = React.useState(false);
   const sheets = useSelector((state: IAppState) => state.sales.sheets);
@@ -92,7 +121,7 @@ const Sales = () => {
   const [activeFilters, setActiveFilters] = React.useState<FilterConfig[]>([]);
   const [originalSheets, setOriginalSheets] = React.useState<any[]>([]);
   
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<ThunkDispatch<IAppState, void, AnyAction>>();
  
   React.useEffect(() => { (async() =>{
     if (sheets.length > 0) {
@@ -103,28 +132,36 @@ const Sales = () => {
     }
   })(); }, [sheets]);
 
-  React.useEffect(() => {
-    renderRow(rows);
-  }, [rows]);
+  // React.useEffect(() => {
+  //   renderRow(rows);
+  // }, [rows]);
 
-  const renderRow = (row: any) => {
-    const newRowNames = new Set(rowNames);
-    const renderedRows: any[] = [];
+  // const renderRow = (row: any) => {
+  //   const newRowNames = new Set(rowNames);
+  //   const renderedRows: any[] = [];
     
-    row.forEach((r: any) => {
-      const renderedRow: any[] = [];
-      for (const key in r) {
-        if (!newRowNames.has(key)) {
-          newRowNames.add(key);
-        }
-        renderedRow.push(r[key]);
-      }
-      renderedRows.push(renderedRow);
-    });
+  //   row.forEach((r: any) => {
+  //     const renderedRow: any[] = [];
+  //     for (const key in r) {
+  //       // if (!newRowNames.has(key)) {
+  //       //   newRowNames.add(key);
+  //       // }
+  //       if (key === '출하일자') {
+  //         renderedRow.push(excelDateToJSDate(r[key]).toLocaleDateString());
+  //       } else if (key === '출하시간') {
+  //         renderedRow.push(excelTimeToString(r[key]));
+  //       } else {
+  //         renderedRow.push(r[key]);
+  //       }
+  //     }
+  //     renderedRows.push(renderedRow);
+  //   });
     
-    // setRowNames(Array.from(newRowNames));
-    setRenderedRows(renderedRows);
-  }
+  //   // setRowNames(Array.from(newRowNames));
+  //   setRenderedRows(renderedRows);
+  // }
+
+  // console.log(renderedRows)
 
   const uploadExcel = () => {
     setIsOpen(true)
@@ -146,23 +183,61 @@ const Sales = () => {
     }));
   };
 
+
   // Handle clicking add row button
   const handleAddRow = (index: number) => {
     // setInsertIndex(index);
     setInsertRow(!insertRow);
     setNewRow({
-      '업체명': '',
-      '품명': '',
-      'L/N': '',
-      '소재 품번': '',
-      '소재 수량': 0,
-      '가공 품번': '',
-      '가공 수량': 0,
-      '출하일자': '',
-      '출하시간': '',
-      '비고': ''
+      // plan_date: startDate.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, ''),
+      company_name: '',
+      name: '',
+      lot: '',
+      material_name: '',
+      material_amount: 0,
+      product_name: '',
+      plan_amount: 0,
+      deadline_date: '',
+      deadline_time: '',
+      note: ''
     });
   };
+
+
+  const handleSaveData = () => {
+    console.log(sheets); 
+    // get plan date by current time in format YYYYMMDD
+    const planDate = new Date().toLocaleDateString('ko-KR', { 
+      year: 'numeric', 
+      month: '2-digit', 
+      day: '2-digit' 
+    }).split('.').map(part => part.trim()).join('');
+    
+    // console.log(planDate);
+
+    sheets.forEach((sheet) => {
+      const deadlineDate = new Date(sheet.deadline_date).toLocaleDateString('ko-KR', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit' 
+      }).split('.')
+        .filter(part => part.trim())
+        .map(part => part.trim())
+        .join('-');
+  
+      const data = {
+        plan_date: planDate,
+        ...sheet,
+        deadline_date: deadlineDate,
+        deadline_time: sheet.deadline_time + ':00',
+        lot: sheet.lot.toString()
+      }
+      console.log(data);
+      dispatch(createPlan(data));
+    });
+
+    console.log(sheets);
+  }
 
   // Handle saving the new row
   const handleSaveRow = () => {
@@ -177,16 +252,16 @@ const Sales = () => {
     // Reset local state
     setInsertIndex(null);
     setNewRow({
-      '업체명': '',
-      '품명': '',
-      'L/N': '',
-      '소재 품번': '',
-      '소재 수량': 0,
-      '가공 품번': '',
-      '가공 수량': 0,
-      '출하일자': '',
-      '출하시간': '',
-      '비고': ''
+      company_name: '',
+      name: '',
+      lot: '',
+      material_name: '',
+      material_amount: 0,
+      product_name: '',
+      plan_amount: 0,
+      deadline_date: '',
+      deadline_time: '',
+      note: ''
     });
     setInsertRow(false);
   };
@@ -278,7 +353,7 @@ const Sales = () => {
         <FileDownloadButton onClick={exportExcel}>{t('sales.download')}</FileDownloadButton>
         <UpdateRowButton onClick={() => handleAddRow(insertIndex ?? 0)}>{t('sales.add')}</UpdateRowButton>
         <UpdateRowButton onClick={() => handleDeleteRow(insertIndex ?? 0)}>{t('sales.delete')}</UpdateRowButton>
-        <SaveButton onClick={handleSaveRow}>{t('sales.save')}</SaveButton>
+        <SaveButton onClick={handleSaveData}>{t('sales.save')}</SaveButton>
         <FilterButton onClick={() => setIsFilterOpen(true)}>
           {t('sales.filter')} {activeFilters.length > 0 && `(${activeFilters.length})`}
         </FilterButton>
@@ -295,7 +370,7 @@ const Sales = () => {
           <thead>
             <TableRow>
               <TableHeader>#</TableHeader>
-              {fixedColumnOrder.map((name, index) => (
+              {rowNames.map((name, index) => (
                 <TableHeader 
                   key={index} 
                   onClick={() => handleSort(name)}
@@ -335,19 +410,16 @@ const Sales = () => {
                   <TableCell>{rowIndex + 1}</TableCell>
                   {rowNames.map((name, colIndex) => (
                     <TableCell key={`${rowIndex}-${colIndex}`}>
-                      {name === '출하일자' && sheet[name] ? 
-                        excelDateToJSDate(sheet[name]).toLocaleDateString() :
-                       name === '출하시간' && sheet[name] ?
-                        excelTimeToString(sheet[name]) :
-                        sheet[name]
-                      }
+                      {sheet[fixedColumnOrder[name]]}
                     </TableCell>
                   ))}
                 </TableRow>
                 
                 {insertIndex === rowIndex && insertRow && (
                   <TableRow>
-                    <TableCell> </TableCell>
+                    <TableCell>
+                      <RowSaveButton onClick={handleSaveRow}>{t('sales.save')}</RowSaveButton>
+                    </TableCell>
                     {rowNames.map((name, index) => (
                       <TableCell key={`new-${index}`}>
                         <Input
@@ -562,4 +634,16 @@ const FilterButton = styled.button`
     background-color: ${props => props.children && props.children.toString().includes('(') ? '#00CCC0' : '#747F7F'};
     color: white;
   }
+`;
+
+const RowSaveButton = styled.button`
+  background-color: #1B7F79;
+  color: white;
+  white-space: nowrap;
+  padding: 5px 10px;
+  border: none;
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 5px;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
 `;

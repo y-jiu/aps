@@ -2,9 +2,15 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useTranslation } from "react-i18next";
 import UserUpdate from "./components/userUpdate";
+import { useSelector } from "react-redux";
+import { CreateUser, DeleteUser, GetUserList, UpdateUser } from "../../modules/user";
+import { useDispatch } from "react-redux";
+import { ThunkDispatch } from 'redux-thunk';
+import { AnyAction } from 'redux';
 
 const System = () => {
   const { t } = useTranslation();
+  const dispatch = useDispatch<ThunkDispatch<any, void, AnyAction>>();
   const [list, setList] = useState<any[]>([]);
   const [currentPageList, setCurrentPageList] = useState<any[]>([]);
   const [page, setPage] = useState(1);
@@ -18,21 +24,29 @@ const System = () => {
   });
   const itemsPerPage = 8;
   const [filteredList, setFilteredList] = useState<any[]>([]);
+  const userList = useSelector((state: any) => state.user.userList);
+  
+  useEffect(() => {
+    dispatch(GetUserList())
+    // const mockUsers = Array.from({ length: 50 }, (_, i) => ({
+    //   id: i + 1,
+    //   user_id: `user_${i + 1}`,
+    //   name: `User ${i + 1}`,
+    //   email: `user${i + 1}@example.com`,
+    //   role: "User",
+    // }));
+    // setList(mockUsers);
+    // setFilteredList(mockUsers);
+    // setCurrentPageList(mockUsers.slice(0, itemsPerPage));
+    // setPageLength(Math.ceil(mockUsers.length / itemsPerPage));
+  }, []);
 
   useEffect(() => {
-    // Mock loading users
-    const mockUsers = Array.from({ length: 50 }, (_, i) => ({
-      id: i + 1,
-      user_id: `user_${i + 1}`,
-      name: `User ${i + 1}`,
-      email: `user${i + 1}@example.com`,
-      role: "User",
-    }));
-    setList(mockUsers);
-    setFilteredList(mockUsers);
-    setCurrentPageList(mockUsers.slice(0, itemsPerPage));
-    setPageLength(Math.ceil(mockUsers.length / itemsPerPage));
-  }, []);
+    setList(userList);
+    setFilteredList(userList);
+    setCurrentPageList(userList.slice(0, itemsPerPage));
+    setPageLength(Math.ceil(userList.length / itemsPerPage));
+  }, [userList]);
 
   useEffect(() => {
     const start = (page - 1) * itemsPerPage;
@@ -51,10 +65,12 @@ const System = () => {
   const deleteUser = (userId: number) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       const updatedList = list.filter((user) => user.id !== userId);
-      setList(updatedList);
-      setFilteredList(updatedList);
-      setPage(1);
-      setPageLength(Math.ceil(updatedList.length / itemsPerPage));
+
+      dispatch(DeleteUser(userId.toString()))
+      // setList(updatedList);
+      // setFilteredList(updatedList);
+      // setPage(1);
+      // setPageLength(Math.ceil(updatedList.length / itemsPerPage));
     }
   };
 
@@ -71,18 +87,9 @@ const System = () => {
 
   const handleSave = (userData: any, isEditMode: boolean) => {
     if (isEditMode) {
-      const updatedList = list.map(user => 
-        user.id === userData.id ? userData : user
-      );
-      setList(updatedList);
-      setFilteredList(updatedList);
+      dispatch(UpdateUser(userData.id, userData.user_id, userData.pass_word, userData.name, userData.email, userData.role))
     } else {
-      const newUser = {
-        ...userData,
-        id: list.length + 1,
-      };
-      setList([...list, newUser]);
-      setFilteredList([...list, newUser]);
+      dispatch(CreateUser(userData.user_id, userData.pass_word, userData.name, userData.email, userData.role))
     }
   };
 

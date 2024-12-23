@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useSelector, useDispatch } from 'react-redux';
-import { getFacilityList, createFacility, deleteFacility } from '../../../modules/information';
+import { getMaterialList, updateMaterial, createMaterial, deleteMaterial } from '../../../modules/delivery';
 import { ThunkDispatch } from 'redux-thunk';
 import { AnyAction } from 'redux';
 
-const Equipment = () => {
+const RawMaterial = () => {
   const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
   // const { role } = useAuth();
   const [isTableVisible, setIsTableVisible] = useState(true);
@@ -13,98 +13,96 @@ const Equipment = () => {
   const [editedValues, setEditedValues] = useState<Record<string, string>>({});
   const [addMode, setAddMode] = useState(false);
 
-  const facilityList = useSelector((state: any) => state.information.facilityList);
+  const materialList = useSelector((state: any) => state.delivery.materialList);
 
   const selectedPlanId = useSelector((state: any) => state.plan.selectedPlanId);
   // const companyList = useSelector((state: any) => state.information.companyList);
 
   useEffect(() => {
-    dispatch(getFacilityList());
+    dispatch(getMaterialList());
   }, []);
 
   useEffect(() => {
     setEditMode({});
     setEditedValues({});
     setAddMode(false);
-  }, [facilityList]);
+  }, [materialList]);
 
   
   const isEditable = () => {
     return true;
   };
 
-  const handleAddFacility = async () => {
+  const handleAddMaterial = async () => {
     setAddMode(true);
   };
 
-  const handleDeleteFacility = async (facilityId: string) => {
+  const handleDeleteMaterial = async (materialId: string) => {
     if (!window.confirm('정말로 삭제하시겠습니까?')) return;
 
     try {
-      await dispatch(deleteFacility(Number(facilityId)));
+      await dispatch(deleteMaterial(Number(materialId)));
     } catch (error) {
-      console.error('Failed to delete facility:', error);
+      console.error('Failed to delete material:', error);
     }
   };
 
-  const handleEditStart = (facilityId: string, field: string, value: string) => {
-    setEditMode(prev => ({ ...prev, [`${facilityId}-${field}`]: true }));
-    setEditedValues(prev => ({ ...prev, [`${facilityId}-${field}`]: value }));
+  const handleEditStart = (productId: string, field: string, value: string) => {
+    setEditMode(prev => ({ ...prev, [`${productId}-${field}`]: true }));
+    setEditedValues(prev => ({ ...prev, [`${productId}-${field}`]: value }));
   };
 
-  const handleEditSaveOrder = async (facilityId: string, field: string) => {
+  const handleEditSave = async (materialId: string, field: string) => {
     const newValue: any = {
-      first_facility_name: '',
-      second_facility_name: '',
-    };
-  }
-  
-  const handleEditSaveName = async (facilityId: string, field: string) => {
-    const newValue: any = {
-      old_facility_name: '',
-      new_facility_name: '',
+      id: materialId,
+      material_name: '',
+      material_amount: '',
+      material_note: ''
     };
 
     // Get existing values from companyList
-    const facility = facilityList.find((c: any) => c.id === facilityId);
-    if (facility) {
+    const material = materialList.find((c: any) => c.id === materialId);
+    if (material) {
       Object.keys(newValue).forEach(key => {
-        newValue[key] = facility[key];
+        newValue[key] = material[key];
       });
     }
 
     // Update with edited values
     for (const key in editedValues) {
-      if (key.includes(facilityId)) {
+      if (key.includes(materialId)) {
         newValue[key.split('-')[1]] = editedValues[key];
       }
     }
+
+    newValue.material_amount = Number(newValue.material_amount);
     
     try {
-      // await dispatch(updateFacility(Number(facilityId), newValue));
-      setEditMode(prev => ({ ...prev, [`${facilityId}-${field}`]: false }));
+      await dispatch(updateMaterial(newValue));
+      setEditMode(prev => ({ ...prev, [`${materialId}-${field}`]: false }));
     } catch (error) {
-      console.error('Failed to update facility:', error);
+      console.error('Failed to update material:', error);
     }
   };
 
-  const handleEditCancel = (facilityId: string, field: string) => {
-    setEditMode(prev => ({ ...prev, [`${facilityId}-${field}`]: false }));
-    setEditedValues(prev => ({ ...prev, [`${facilityId}-${field}`]: '' }));
+  const handleEditCancel = (materialId: string, field: string) => {
+    setEditMode(prev => ({ ...prev, [`${materialId}-${field}`]: false }));
+    setEditedValues(prev => ({ ...prev, [`${materialId}-${field}`]: '' }));
   };
 
   const handleAddSave = async () => {
     try {
-      const newFacilityData = {
-        facility_name: editedValues['new-facility_name'],
-        // facility_order: editedValues['new-facility_order'],
+      const newMaterialData = {
+        material_name: editedValues['new-material_name'],
+        material_amount: Number(editedValues['new-material_amount']),
+        material_note: editedValues['new-material_note']
       };
       
-      await dispatch(createFacility(newFacilityData));
+      await dispatch(createMaterial(newMaterialData));
       setAddMode(false);
       setEditedValues({});
     } catch (error) {
-      console.error('Failed to create facility:', error);
+      console.error('Failed to create material:', error);
     }
   };
 
@@ -115,7 +113,7 @@ const Equipment = () => {
           <thead>
             <tr>
               <TableHeader 
-                colSpan={3}
+                colSpan={5}
                 onClick={() => setIsTableVisible(!isTableVisible)}
               >
                 제품 목록
@@ -126,53 +124,70 @@ const Equipment = () => {
           {isTableVisible && (
             <tbody>
               <tr>
-                <TableHeaderCell>설비 이름</TableHeaderCell>
-                <TableHeaderCell>설비 순서</TableHeaderCell>
-                <TableHeaderCell>삭제</TableHeaderCell>
+                <TableHeaderCell>자재 이름</TableHeaderCell>
+                <TableHeaderCell>자재 수량</TableHeaderCell>
+                <TableHeaderCell>비고</TableHeaderCell>
               </tr>
-              {facilityList.map((facility: any) => (
-                <tr key={facility.id}>
+              {materialList.map((material: any) => (
+                <tr key={material.id}>
                   <TableCell 
-                    isEditing={editMode[`${facility.id}-facility_name`]}
-                    onClick={() => isEditable() && handleEditStart(facility.id, 'facility_name', facility.facility_name)}
+                    isEditing={editMode[`${material.id}-material_name`]}
+                    onClick={() => isEditable() && handleEditStart(material.id, 'material_name', material.material_name)}
                   >
-                    {/* {editMode[`${facility.id}-facility_name`] ? (
+                    {editMode[`${material.id}-material_name`] ? (
                       <Input
-                        value={editedValues[`${facility.id}-facility_name`] || ''}
+                        value={editedValues[`${material.id}-material_name`] || ''}
                         onChange={e => setEditedValues(prev => ({
                           ...prev,
-                          [`${facility.id}-facility_name`]: e.target.value
+                          [`${material.id}-material_name`]: e.target.value
                         }))}
-                        // onBlur={() => handleEditSave(facility.id, 'facility_name')}
-                        // onKeyPress={e => e.key === 'Enter' && handleEditSave(facility.id, 'facility_name')}
-                        // onKeyDown={e => e.key === 'Escape' && handleEditCancel(facility.id, 'facility_name')}
+                        onBlur={() => handleEditSave(material.id, 'material_name')}
+                        onKeyPress={e => e.key === 'Enter' && handleEditSave(material.id, 'material_name')}
+                        onKeyDown={e => e.key === 'Escape' && handleEditCancel(material.id, 'material_name')}
                         autoFocus
                       />
-                    ) : facility.facility_name} */}
-                    {facility.facility_name}
+                    ) : material.material_name}
                   </TableCell>
                   <TableCell
-                    isEditing={editMode[`${facility.id}-facility_order`]}
-                    onClick={() => isEditable() && handleEditStart(facility.id, 'facility_order', facility.facility_order)}
+                    isEditing={editMode[`${material.id}-material_amount`]}
+                    onClick={() => isEditable() && handleEditStart(material.id, 'material_amount', material.material_amount)}
                   >
-                    {/* {editMode[`${facility.id}-facility_order`] ? (
+                    {editMode[`${material.id}-material_amount`] ? (
                       <Input
-                        value={editedValues[`${facility.id}-facility_order`] || ''}
+                        value={editedValues[`${material.id}-material_amount`] || ''}
                         onChange={e => setEditedValues(prev => ({
                           ...prev,
-                          [`${facility.id}-facility_order`]: e.target.value
+                          [`${material.id}-material_amount`]: e.target.value
                         }))}
-                        onBlur={() => handleEditSave(facility.id, 'facility_order')}
-                        onKeyPress={e => e.key === 'Enter' && handleEditSave(facility.id, 'facility_order')}
-                        onKeyDown={e => e.key === 'Escape' && handleEditCancel(facility.id, 'facility_order')}
+                        onBlur={() => handleEditSave(material.id, 'material_amount')}
+                        onKeyPress={e => e.key === 'Enter' && handleEditSave(material.id, 'material_amount')}
+                        onKeyDown={e => e.key === 'Escape' && handleEditCancel(material.id, 'material_amount')}
                         autoFocus
                       />
-                    ) : facility.facility_order} */}
-                    {facility.facility_order}
+                    ) : material.material_amount}
+                  </TableCell>
+                  <TableCell
+                    isEditing={editMode[`${material.id}-material_note`]}
+                    onClick={() => isEditable() && handleEditStart(material.id, 'material_note', material.material_note)}
+                  >
+                    {editMode[`${material.id}-material_note`] ? (
+                      <Input
+                        value={editedValues[`${material.id}-material_note`] || ''}
+                        onChange={e => setEditedValues(prev => ({
+                          ...prev,
+                          [`${material.id}-material_note`]: e.target.value
+                        }))}
+                        onBlur={() => handleEditSave(material.id, 'material_note')}
+                        onKeyPress={e => e.key === 'Enter' && handleEditSave(material.id, 'material_note')}
+                        onKeyDown={e => e.key === 'Escape' && handleEditCancel(material.id, 'material_note')}
+                        autoFocus
+                      />
+                    ) : material.material_note}
+
                   </TableCell>
                   <TableCell>
                     <DeleteButton
-                      onClick={() => handleDeleteFacility(facility.id)}
+                      onClick={() => handleDeleteMaterial(material.id)}
                       disabled={!isEditable()}
                     >
                       삭제
@@ -184,21 +199,30 @@ const Equipment = () => {
                 <tr>
                   <TableCell>
                     <Input
-                      value={editedValues[`new-facility_name`] || ''}
+                      value={editedValues[`new-material_name`] || ''}
                       onChange={e => setEditedValues(prev => ({
                         ...prev,
-                        [`new-facility_name`]: e.target.value
+                        [`new-material_name`]: e.target.value
                       }))}
                     />
                   </TableCell>
                   <TableCell>
-                    {/* <Input
-                      value={editedValues[`new-facility_order`] || ''}
+                    <Input
+                      value={editedValues[`new-material_amount`] || ''}
                       onChange={e => setEditedValues(prev => ({
                         ...prev,
-                        [`new-facility_order`]: e.target.value
+                        [`new-material_amount`]: e.target.value
                       }))}
-                    /> */}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      value={editedValues[`new-material_note`] || ''}
+                      onChange={e => setEditedValues(prev => ({
+                        ...prev,
+                        [`new-material_note`]: e.target.value
+                      }))}
+                    />
                   </TableCell>
                   <TableCell>
                       <SaveButton onClick={() => handleAddSave()}>저장</SaveButton>
@@ -207,9 +231,9 @@ const Equipment = () => {
               )}
 
               <tr>
-                <TableCell colSpan={3} style={{ backgroundColor: '#E8F5E9' }}>
+                <TableCell colSpan={7} style={{ backgroundColor: '#E8F5E9' }}>
                   <AddButton
-                    onClick={handleAddFacility}
+                    onClick={handleAddMaterial}
                     disabled={!isEditable()}
                   >
                     +
@@ -224,7 +248,7 @@ const Equipment = () => {
   );
 };
 
-export default Equipment;
+export default RawMaterial;
 
 
 const FacilityWrapper = styled.div`

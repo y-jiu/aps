@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useSelector, useDispatch } from 'react-redux';
-import { getCompanyList, createCompany, updateCompany, deleteCompany, getProductList, updateProduct, createProduct, deleteProduct } from '../../../modules/information';
+import { getProductList, updateProduct, createProduct, deleteProduct } from '../../../modules/information';
 import { ThunkDispatch } from 'redux-thunk';
 import { AnyAction } from 'redux';
 
@@ -21,6 +21,7 @@ const Product = () => {
   useEffect(() => {
     dispatch(getProductList());
   }, []);
+
 
   useEffect(() => {
     setEditMode({});

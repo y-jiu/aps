@@ -4,12 +4,12 @@ import styled from 'styled-components'
 
 const DefaultLayout: React.FC = () => {
   // Add authentication check
-  // const isAuthenticated = localStorage.getItem('authToken') 
+  const isAuthenticated = localStorage.getItem('authToken') 
 
-  // if (!isAuthenticated) {
-  //   console.log('not authenticated')
-  //   return <Navigate to="/login" replace />
-  // }
+  if (!isAuthenticated) {
+    console.log('not authenticated')
+    return <Navigate to="/login" replace />
+  }
   
   return (
     <Container>

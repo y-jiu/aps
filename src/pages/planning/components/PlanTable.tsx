@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from 'redux-thunk';
@@ -8,8 +8,10 @@ import {
   setSelectedPlanId, 
   setSelectedPlanState, 
   setSelectedPlanBomState,
-  getPlanList,
-  planUpdateState 
+  // getPlanList,
+  planUpdateState,
+  getPlanByDate,
+  getPlanByMonth
 } from '../../../modules/plan';
 import { IAppState } from '../../../types';
 
@@ -89,104 +91,118 @@ const TableHeader = styled.th`
 interface PlanData {
   id: string;
   state: string;
-  company: string;
+  company_name: string;
   product_name: string;
   product_unit: string;
-  amount: string;
-  bom_state: string;
+  plan_amount: string;
+  // bom_state: string;
   background_color: string;
   lot: string;
-  madedate: string;
+  deadline_date: string;
+  deadline_time: string;
   material_amount: string;
+  material_name: string;
+  note: string;
 }
 
 interface PlanTableProps {
   onFindEvent: (event: any) => void;
 }
 
-// Add mock data
-const mockPlanData: PlanData[] = [
-  {
-    id: '1',
-    state: 'Working',
-    company: '테스트 주식회사',
-    product_name: '테스트 제품 A',
-    product_unit: 'EA',
-    amount: '100',
-    bom_state: '완료',
-    background_color: '',
-    lot: 'LOT001',
-    madedate: '20240320',
-    material_amount: '500'
-  },
-  {
-    id: '2',
-    state: 'Done',
-    company: '샘플 기업',
-    product_name: '샘플 제품 B',
-    product_unit: 'KG',
-    amount: '50',
-    bom_state: '대기',
-    background_color: '',
-    lot: 'LOT002',
-    madedate: '20240321',
-    material_amount: '250'
-  },
-  {
-    id: '3',
-    state: 'Pending',
-    company: '제조산업 주식회사',
-    product_name: '산업용 부품 C',
-    product_unit: 'PCS',
-    amount: '200',
-    bom_state: '진행중',
-    background_color: '',
-    lot: 'LOT003', 
-    madedate: '20240322',
-    material_amount: '1000'
-  },
-  {
-    id: '4',
-    state: 'Working',
-    company: '글로벌테크',
-    product_name: '전자부품 D',
-    product_unit: 'SET',
-    amount: '75',
-    bom_state: '완료',
-    background_color: '',
-    lot: 'LOT004',
-    madedate: '20240323',
-    material_amount: '300'
-  },
-  {
-    id: '5',
-    state: 'Done',
-    company: '스마트솔루션',
-    product_name: '센서모듈 E',
-    product_unit: 'EA',
-    amount: '150',
-    bom_state: '완료',
-    background_color: '',
-    lot: 'LOT005',
-    madedate: '20240324',
-    material_amount: '750'
-  }
-];
+// // Add mock data
+// const mockPlanData: PlanData[] = [
+//   {
+//     id: '1',
+//     state: 'Working',
+//     company: '테스트 주식회사',
+//     product_name: '테스트 제품 A',
+//     product_unit: 'EA',
+//     amount: '100',
+//     bom_state: '완료',
+//     background_color: '',
+//     lot: 'LOT001',
+//     madedate: '20240320',
+//     material_amount: '500'
+//   },
+//   {
+//     id: '2',
+//     state: 'Done',
+//     company: '샘플 기업',
+//     product_name: '샘플 제품 B',
+//     product_unit: 'KG',
+//     amount: '50',
+//     bom_state: '대기',
+//     background_color: '',
+//     lot: 'LOT002',
+//     madedate: '20240321',
+//     material_amount: '250'
+//   },
+//   {
+//     id: '3',
+//     state: 'Pending',
+//     company: '제조산업 주식회사',
+//     product_name: '산업용 부품 C',
+//     product_unit: 'PCS',
+//     amount: '200',
+//     bom_state: '진행중',
+//     background_color: '',
+//     lot: 'LOT003', 
+//     madedate: '20240322',
+//     material_amount: '1000'
+//   },
+//   {
+//     id: '4',
+//     state: 'Working',
+//     company: '글로벌테크',
+//     product_name: '전자부품 D',
+//     product_unit: 'SET',
+//     amount: '75',
+//     bom_state: '완료',
+//     background_color: '',
+//     lot: 'LOT004',
+//     madedate: '20240323',
+//     material_amount: '300'
+//   },
+//   {
+//     id: '5',
+//     state: 'Done',
+//     company: '스마트솔루션',
+//     product_name: '센서모듈 E',
+//     product_unit: 'EA',
+//     amount: '150',
+//     bom_state: '완료',
+//     background_color: '',
+//     lot: 'LOT005',
+//     madedate: '20240324',
+//     material_amount: '750'
+//   }
+// ];
 
 const PlanTable: React.FC<PlanTableProps> = ({ onFindEvent }) => {
   const dispatch = useDispatch<ThunkDispatch<IAppState, unknown, AnyAction>>();
   const [selectedRow, setSelectedRow] = useState<string | null>(null);
   
+  useEffect(() => {
+    // dispatch(getPlanList({ start: '20240320', end: '20240324' }));
+  }, [dispatch]);
+
+  const planData = useSelector((state: IAppState) => state.plan.planDatas);
+  // const planList = useSelector((state: IAppState) => state.plan.planList);
+
   // Modify the useSelector to use mock data when Redux data is empty
   // const planData = useSelector((state: IAppState) => state.plan.planDatas) || mockPlanData;
-  const planData = mockPlanData
+  // const planData = mockPlanData
   const day = useSelector((state: IAppState) => state.plan.day_planBOM);
+
+  useEffect(() => {
+    console.log(planData)
+  }, [planData])
 
   const handleRowClick = async (plan: PlanData) => {
     setSelectedRow(plan.id);
     dispatch(setSelectedPlanId(plan.id));
     dispatch(setSelectedPlanState(plan.state));
-    dispatch(setSelectedPlanBomState(plan.bom_state));
+    // dispatch(setSelectedPlanBomState(plan.bom_state));
     onFindEvent(plan);
   };
 
@@ -199,12 +215,12 @@ const PlanTable: React.FC<PlanTableProps> = ({ onFindEvent }) => {
       }));
       
       // Refresh plan list
-      const startDay = dayjs(day.startDay).format('YYYYMMDD');
-      const endDay = dayjs(day.endDay).format('YYYYMMDD');
-      dispatch(getPlanList({ 
-        start: startDay, 
-        end: endDay 
-      }));
+      const startDay = dayjs(day.day).format('YYYYMMDD');
+      const endDay = dayjs(day.day).format('YYYYMMDD');
+      // dispatch(getPlanList({ 
+      //   start: startDay, 
+      //   end: endDay 
+      // }));
     }
   };
 
@@ -212,13 +228,19 @@ const PlanTable: React.FC<PlanTableProps> = ({ onFindEvent }) => {
     <TableWrapper>
       <Table>
         <thead>
+            
           <tr>
             <TableHeader>상태</TableHeader>
             <TableHeader>회사</TableHeader>
             <TableHeader>품명</TableHeader>
-            <TableHeader>단위</TableHeader>
+            {/* <TableHeader>단위</TableHeader> */}
             <TableHeader>수량</TableHeader>
-            <TableHeader>BOM상태</TableHeader>
+            <TableHeader>자재명</TableHeader>
+            <TableHeader>자재수량</TableHeader>
+            <TableHeader>LOT</TableHeader>
+            <TableHeader>마감일</TableHeader>
+            <TableHeader>마감시간</TableHeader>
+            <TableHeader>비고</TableHeader>
           </tr>
         </thead>
         <tbody>
@@ -230,11 +252,17 @@ const PlanTable: React.FC<PlanTableProps> = ({ onFindEvent }) => {
               onDoubleClick={() => handleStateUpdate(index)}
             >
               <TableCell state={plan.state}>{plan.state}</TableCell>
-              <TableCell>{plan.company}</TableCell>
+              <TableCell>{plan.company_name}</TableCell>
               <TableCell>{plan.product_name}</TableCell>
-              <TableCell>{plan.product_unit}</TableCell>
-              <TableCell>{plan.amount}</TableCell>
-              <TableCell>{plan.bom_state}</TableCell>
+              {/* <TableCell>{plan.product_unit}</TableCell> */}
+              <TableCell>{plan.plan_amount}</TableCell>
+              <TableCell>{plan.material_name}</TableCell>
+              <TableCell>{plan.material_amount}</TableCell>
+              <TableCell>{plan.lot}</TableCell>
+              <TableCell>{plan.deadline_date}</TableCell>
+              <TableCell>{plan.deadline_time}</TableCell>
+
+              <TableCell>{plan.note}</TableCell>
             </TableRow>
           ))}
         </tbody>

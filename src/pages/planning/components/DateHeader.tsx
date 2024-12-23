@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import dayjs from 'dayjs';
-import { getPlanList, initializeDates, setDayPlanBOM, setFilterQuery, setIsExpanded, setPlanData } from '../../../modules/plan';
+import { getPlanByDate, getPlanByMonth, initializeDates, setDayPlanBOM, setFilterQuery, setIsExpanded, setPlanData } from '../../../modules/plan';
 import { ThunkDispatch } from 'redux-thunk';
 import { AnyAction } from 'redux';
 import { IAppState } from '../../../types';
@@ -13,6 +13,7 @@ const HeaderWrapper = styled.div`
   border-radius: 0.5rem;
   margin: 0 auto;
   background-color: #f5f5f5;
+  height: 30px;
 `;
 
 const ContentContainer = styled.div`
@@ -25,6 +26,7 @@ const ContentContainer = styled.div`
 const ExpandButton = styled.button<{ isExpanded: boolean }>`
   position: absolute;
   left: 8px;
+  top: ${props => props.isExpanded ? '0px' : '50%'};
   padding: 5px 10px;
   border-radius: 0.25rem;
   font-size: 13px;
@@ -43,6 +45,9 @@ const DateLabel = styled.p`
   font-weight: 500;
   margin: 0 8px;
   margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 // const CustomDatePicker = styled(DatePicker)`
@@ -68,57 +73,77 @@ const SearchButton = styled.button`
   }
 `;
 
+const TabContainer = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+`;
+
+const Tab = styled.button<{ isActive: boolean }>`
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background-color: ${props => props.isActive ? '#1976d2' : '#ffffff'};
+  color: ${props => props.isActive ? '#ffffff' : '#000000'};
+  cursor: pointer;
+  font-size: 12px;
+
+  &:hover {
+    background-color: ${props => props.isActive ? '#1565c0' : '#f5f5f5'};
+  }
+`;
+
 interface DateHeaderProps {}
 
 const DateHeader: React.FC<DateHeaderProps> = () => {
   const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
-  const [startDay, setStartDay] = useState<Date | null>(null);
-  const [endDay, setEndDay] = useState<Date | null>(null);
-  const [startDayAttributes, setStartDayAttributes] = useState<any[]>([]);
-  const [endDayAttributes, setEndDayAttributes] = useState<any[]>([]);
-
-  const isExpanded = useSelector((state: IAppState) => state.plan.isExpanded);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [dateAttributes, setDateAttributes] = useState<any[]>([]);
+  const [searchType, setSearchType] = useState<'daily' | 'monthly'>('daily');
+  const [isExpanded, setIsExpanded] = useState(false);
+  // const isExpanded = useSelector((state: IAppState) => state.plan.isExpanded);
   const bomDay = useSelector((state: IAppState) => state.plan.day);
 
+  console.log(isExpanded)
   useEffect(() => {
-    initializeDates();
+    initializeDate();
   }, []);
 
-  const initializeDates = () => {
-    if (!bomDay?.startDay) {
-      const today = new Date();
-      const nextMonth = new Date(today);
-      nextMonth.setMonth(today.getMonth() + 1);
-      
-      setStartDay(today);
-      setEndDay(nextMonth);
-      
-      dispatch(setDayPlanBOM({ startDay: today, endDay: nextMonth }));
-    } else {
-      if (bomDay.startDay) setStartDay(new Date(bomDay.startDay));
-      if (bomDay.endDay) setEndDay(new Date(bomDay.endDay));
-    }
+  const initializeDate = () => {
+    const today = new Date();
+    setSelectedDate(today);
+    dispatch(setDayPlanBOM({ day: today }));
+    monthlyCheckDot(today.getFullYear(), today.getMonth() + 1);
   };
 
   const handleSearch = async () => {
-    if (!startDay || !endDay) return;
+    if (!selectedDate) return;
 
     dispatch(setPlanData([]));
     dispatch(setFilterQuery({}));
 
-    const start = dayjs(startDay).format('YYYYMMDD');
-    const end = dayjs(endDay).format('YYYYMMDD');
+    const formattedDate = searchType === 'daily' 
+      ? dayjs(selectedDate).format('YYYYMMDD')
+      : dayjs(selectedDate).format('YYYY/MM');
 
-    await dispatch(getPlanList({ start, end }) as any);
+    // await dispatch(getPlanList({ date: formattedDate, searchType }) as any);
+    dispatch(setDayPlanBOM({ day: selectedDate }));
+    // console.log(formattedDate)
 
-    dispatch(setDayPlanBOM({ startDay, endDay }));
+    if (searchType === 'daily') {
+      // dispatch(setDayPlanBOM({ day: selectedDate }));
+      dispatch(getPlanByDate(formattedDate));
+    } else {
+      const year = formattedDate.split('/')[0];
+      const month = formattedDate.split('/')[1];
+      dispatch(getPlanByMonth(year, month));
+      // dispatch(setDayPlanBOM({ day: selectedDate }));
+    }
   };
 
-  const handleExpandCollapse = () => {
-    dispatch(setIsExpanded(!isExpanded));
-  };
-
-  const monthlyCheckDot = async (year: number, month: number, dateType: 'startDay' | 'endDay') => {
+  const monthlyCheckDot = async (year: number, month: number) => {
     const yearMonth = `${year}${String(month).padStart(2, '0')}`;
     
     try {
@@ -127,34 +152,25 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
       );
       const data = await response.json();
       
-      if (dateType === 'startDay') {
-        setStartDayAttributes([{
-          dot: true,
-          dates: data.date || []
-        }]);
-      } else {
-        setEndDayAttributes([{
-          dot: true,
-          dates: data.date || []
-        }]);
-      }
+      setDateAttributes([{
+        dot: true,
+        dates: data.date || []
+      }]);
     } catch (error) {
       console.error('Failed to fetch calendar data:', error);
     }
   };
 
-  const handleStartDateChange = (date: Date | null) => {
+  const handleDateChange = (date: Date | null) => {
     if (date) {
-      setStartDay(date);
-      monthlyCheckDot(date.getFullYear(), date.getMonth() + 1, 'startDay');
+      setSelectedDate(date);
+      monthlyCheckDot(date.getFullYear(), date.getMonth() + 1);
     }
   };
 
-  const handleEndDateChange = (date: Date | null) => {
-    if (date) {
-      setEndDay(date);
-      monthlyCheckDot(date.getFullYear(), date.getMonth() + 1, 'endDay');
-    }
+  const handleExpandCollapse = () => {
+    // dispatch(setIsExpanded(!isExpanded));
+    setIsExpanded(!isExpanded);
   };
 
   return (
@@ -167,27 +183,35 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
           {isExpanded ? "접기 <" : "펼치기 >"}
         </ExpandButton>
 
-        <DateLabel>시작날짜</DateLabel>
+        {isExpanded && <>
+        <TabContainer>
+        <Tab 
+          isActive={searchType === 'daily'}
+          onClick={() => setSearchType('daily')}
+        >
+          일별 검색
+        </Tab>
+        <Tab 
+          isActive={searchType === 'monthly'}
+          onClick={() => setSearchType('monthly')}
+        >
+          월별 검색
+        </Tab>
+      </TabContainer>
+        <DateLabel>날짜</DateLabel>
         <DatePicker
-          selected={startDay}
-          onChange={handleStartDateChange}
-          dateFormat="yyyy.MM.dd"
-          placeholderText="Select start date"
-          highlightDates={startDayAttributes[0]?.dates}
-        />
-
-        <DateLabel style={{ marginLeft: '1.5rem' }}>종료날짜</DateLabel>
-        <DatePicker
-          selected={endDay}
-          onChange={handleEndDateChange}
-          dateFormat="yyyy.MM.dd"
-          placeholderText="Select end date"
-          highlightDates={endDayAttributes[0]?.dates}
+          selected={selectedDate}
+          onChange={handleDateChange}
+          dateFormat={searchType === 'daily' ? "yyyy.MM.dd" : "yyyy.MM"}
+          showMonthYearPicker={searchType === 'monthly'}
+          placeholderText={searchType === 'daily' ? "Select date" : "Select month"}
+          highlightDates={dateAttributes[0]?.dates}
         />
 
         <SearchButton onClick={handleSearch}>
           검색
         </SearchButton>
+        </>}
       </ContentContainer>
     </HeaderWrapper>
   );

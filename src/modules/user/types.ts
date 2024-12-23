@@ -21,11 +21,23 @@ interface ISetRegisterError {
   readonly registerError: string
 }
 
+interface IReceiveUserList {
+  readonly type: 'user/RECEIVE_USER_LIST'
+  readonly userList: any
+}
+
+interface IReceiveUserByName {
+  readonly type: 'user/RECEIVE_USER_BY_NAME'
+  readonly user: any
+}
+
 type ActionTypes =
   | IReceiveAuthToken
   | IClearAuthToken
   | ISetNewPassword
   | ISetLoginError
   | ISetRegisterError
+  | IReceiveUserList
+  | IReceiveUserByName
 
 export default ActionTypes

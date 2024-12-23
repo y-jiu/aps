@@ -103,7 +103,7 @@ interface IUpdateProcessOrder {
 
 interface ISetDayPlanBOM {
   readonly type: 'plan/SET_DAY_PLAN_BOM'
-  readonly payload: { startDay: Date; endDay: Date }
+  readonly payload: { day: Date | null }
 }
 
 interface ISetIsExpanded {
@@ -114,6 +114,11 @@ interface ISetIsExpanded {
 interface ISetFilterQuery {
   readonly type: 'plan/SET_FILTER_QUERY'
   readonly filterQuery: any
+}
+
+interface IReceivePlanList {
+  readonly type: 'plan/RECEIVE_PLAN_LIST'
+  readonly planList: any
 }
 
 type ActionTypes = 
@@ -135,4 +140,5 @@ ISetPlanData
 | ISetDayPlanBOM
 | ISetIsExpanded
 | ISetFilterQuery
+| IReceivePlanList
 export default ActionTypes

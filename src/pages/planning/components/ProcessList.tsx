@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useSelector, useDispatch } from 'react-redux';
 // import { useAuth } from '../../../hooks/useAuth';
-import { addProcess, deleteProcess, updateProcess, updateProcessesOrder, updateProcessOrder } from '../../../modules/plan';
+// import { addProcess, deleteProcess, updateProcess, updateProcessesOrder, updateProcessOrder } from '../../../modules/plan';
+import { getProcessList, deleteProcess, updateProcess, createProcess } from '../../../modules/information';
+import { ThunkDispatch } from 'redux-thunk';
+import { AnyAction } from 'redux';
 
 const ProcessWrapper = styled.div`
   margin-top: 1rem;
@@ -130,6 +133,20 @@ const TableHeaderCell = styled.th`
   font-size: 13px;
 `;
 
+const TableContainer = styled.div`
+  width: 100%;
+`;
+
+const SaveButton = styled.button`
+  width: 100%;
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+`;
+
 interface ProcessListProps {
   selectedPlanBomState: string;
 }
@@ -142,203 +159,191 @@ interface Process {
 }
 
 const ProcessList: React.FC<ProcessListProps> = ({ selectedPlanBomState }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
   // const { role } = useAuth();
   const [isTableVisible, setIsTableVisible] = useState(true);
   const [editMode, setEditMode] = useState<Record<string, boolean>>({});
   const [editedValues, setEditedValues] = useState<Record<string, string>>({});
+  const [addMode, setAddMode] = useState(false);
 
-  // const processes = useSelector((state: any) => state.process.processes);
-  //processes mock data
-  const processes = [
-    { id: '1', name: 'Process 1', order: 1, note: 'Note 1' },
-    { id: '2', name: 'Process 2', order: 2, note: 'Note 2' }
-  ];
+  const processList = useSelector((state: any) => state.information.processList);
+
   const selectedPlanId = useSelector((state: any) => state.plan.selectedPlanId);
+  // const companyList = useSelector((state: any) => state.information.companyList);
 
+  useEffect(() => {
+    dispatch(getProcessList());
+  }, []);
+
+  useEffect(() => {
+    setEditMode({});
+    setEditedValues({});
+    setAddMode(false);
+  }, [processList]);
+
+  
   const isEditable = () => {
-    // return (role === 'Master' || role === 'Admin') && 
-    //        selectedPlanBomState === 'Editting';
     return true;
   };
 
   const handleAddProcess = async () => {
-    if (!selectedPlanId) return;
-    
-    try {
-      await dispatch(addProcess(selectedPlanId));
-    } catch (error) {
-      console.error('Failed to add process:', error);
-    }
+    setAddMode(true);
   };
 
-  const handleDeleteProcess = async (processId: string) => {
+  const handleDeleteProcess = async (processName: string) => {
     if (!window.confirm('정말로 삭제하시겠습니까?')) return;
 
     try {
-      await dispatch(deleteProcess(processId));
-      
-      // Reorder remaining processes
-      const updatedProcesses = processes
-        .filter((p: Process) => p.id !== processId)
-        .map((p: Process, index: number) => ({
-          ...p,
-          order: index + 1
-        }));
-      
-      dispatch(updateProcessOrder(updatedProcesses));
+      await dispatch(deleteProcess(processName));
     } catch (error) {
       console.error('Failed to delete process:', error);
     }
   };
 
-  const handleEditStart = (processId: string, field: string, value: string) => {
-    if (!isEditable()) return;
-    
-    setEditMode(prev => ({ ...prev, [`${processId}-${field}`]: true }));
-    setEditedValues(prev => ({ ...prev, [`${processId}-${field}`]: value }));
+  const handleEditStart = (processName: string, field: string, value: string) => {
+    setEditMode(prev => ({ ...prev, [`${processName}-${field}`]: true }));
+    setEditedValues(prev => ({ ...prev, [`${processName}-${field}`]: value }));
   };
 
-  const handleEditSave = async (processId: string, field: string) => {
-    const newValue = editedValues[`${processId}-${field}`];
+  const handleEditSaveOrder = async (facilityId: string, field: string) => {
+    const newValue: any = {
+      first_facility_name: '',
+      second_facility_name: '',
+    };
+  }
+  
+  const handleEditSaveName = async (processName: string, field: string) => {
+    const newValue: any = {
+      old_facility_name: '',
+      new_facility_name: '',
+    };
+
+    // Get existing values from companyList
+    const process = processList.find((c: any) => c.process_name === processName);
+    if (process) {
+      Object.keys(newValue).forEach(key => {
+        newValue[key] = process[key];
+      });
+    }
+
+    // Update with edited values
+    for (const key in editedValues) {
+      if (key.includes(processName)) {
+        newValue[key.split('-')[1]] = editedValues[key];
+      }
+    }
     
     try {
-      await dispatch(updateProcess({
-        id: processId, [field]: newValue,
-        name: '',
-        order: 0,
-        note: ''
-      }));
-      setEditMode(prev => ({ ...prev, [`${processId}-${field}`]: false }));
+      // await dispatch(updateFacility(Number(facilityId), newValue));
+      setEditMode(prev => ({ ...prev, [`${processName}-${field}`]: false }));
     } catch (error) {
-      console.error('Failed to update process:', error);
+      console.error('Failed to update facility:', error);
     }
   };
 
-  const handleMoveProcess = async (processId: string, direction: 'up' | 'down') => {
-    const currentIndex = processes.findIndex((p: Process) => p.id === processId);
-    if (
-      (direction === 'up' && currentIndex === 0) || 
-      (direction === 'down' && currentIndex === processes.length - 1)
-    ) return;
+  const handleEditCancel = (processName: string, field: string) => {
+    setEditMode(prev => ({ ...prev, [`${processName}-${field}`]: false }));
+    setEditedValues(prev => ({ ...prev, [`${processName}-${field}`]: '' }));
+  };
 
-    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-    const updatedProcesses = [...processes];
-    [updatedProcesses[currentIndex], updatedProcesses[newIndex]] = 
-    [updatedProcesses[newIndex], updatedProcesses[currentIndex]];
-
-    // Update order numbers
-    const reorderedProcesses = updatedProcesses.map((p, index) => ({
-      ...p,
-      order: index + 1
-    }));
-
+  const handleAddSave = async () => {
     try {
-      await dispatch(updateProcessOrder(reorderedProcesses));
+      const newProcessData = {
+        process_name: editedValues['new-process_name'],
+        // facility_order: editedValues['new-facility_order'],
+      };
+      
+      await dispatch(createProcess(newProcessData));
+      setAddMode(false);
+      setEditedValues({});
     } catch (error) {
-      console.error('Failed to update process order:', error);
+      console.error('Failed to create facility:', error);
     }
   };
 
   return (
     <ProcessWrapper>
-      <Table>
-        <thead>
-          <tr>
-            <TableHeader 
-              colSpan={6}
-              onClick={() => setIsTableVisible(!isTableVisible)}
-            >
-              공정 목록
-              {/* Add collapse/expand icon */}
-            </TableHeader>
-          </tr>
-        </thead>
-        {isTableVisible && (
-          <tbody>
+      <TableContainer>
+        <Table>
+          <thead>
             <tr>
-              <TableHeaderCell>공정명</TableHeaderCell>
-              <TableHeaderCell>순서</TableHeaderCell>
-              <TableHeaderCell>비고</TableHeaderCell>
-              <TableHeaderCell>삭제</TableHeaderCell>
-              <TableHeaderCell colSpan={2}>이동</TableHeaderCell>
+              <TableHeader 
+                colSpan={3}
+                onClick={() => setIsTableVisible(!isTableVisible)}
+              >
+                공정 목록
+                {/* Add icon based on visibility state */}
+              </TableHeader>
             </tr>
-            {processes.map((process: Process, index: number) => (
-              <tr key={process.id}>
-                <TableCell 
-                  isEditing={editMode[`${process.id}-name`]}
-                  onClick={() => handleEditStart(process.id, 'name', process.name)}
-                >
-                  {editMode[`${process.id}-name`] ? (
+          </thead>
+          {isTableVisible && (
+            <tbody>
+              <tr>
+                <TableHeaderCell>공정 이름</TableHeaderCell>
+                <TableHeaderCell>삭제</TableHeaderCell>
+              </tr>
+              {processList.map((process: any) => (
+                <tr key={process.process_name}>
+                  <TableCell 
+                    isEditing={editMode[`${process.process_name}-process_name`]}
+                    onClick={() => isEditable() && handleEditStart(process.process_name, 'process_name', process.process_name)}
+                  >
+                    {/* {editMode[`${facility.id}-facility_name`] ? (
+                      <Input
+                        value={editedValues[`${facility.id}-facility_name`] || ''}
+                        onChange={e => setEditedValues(prev => ({
+                          ...prev,
+                          [`${facility.id}-facility_name`]: e.target.value
+                        }))}
+                        // onBlur={() => handleEditSave(facility.id, 'facility_name')}
+                        // onKeyPress={e => e.key === 'Enter' && handleEditSave(facility.id, 'facility_name')}
+                        // onKeyDown={e => e.key === 'Escape' && handleEditCancel(facility.id, 'facility_name')}
+                        autoFocus
+                      />
+                    ) : process.process_name} */}
+                    {process.process_name}
+                  </TableCell>
+                  <TableCell>
+                    <DeleteButton
+                      onClick={() => handleDeleteProcess(process.process_name)}
+                      disabled={!isEditable()}
+                    >
+                      삭제
+                    </DeleteButton>
+                  </TableCell>
+                </tr>
+              ))}
+              {addMode && (
+                <tr>
+                  <TableCell>
                     <Input
-                      value={editedValues[`${process.id}-name`] || ''}
+                      value={editedValues[`new-process_name`] || ''}
                       onChange={e => setEditedValues(prev => ({
                         ...prev,
-                        [`${process.id}-name`]: e.target.value
+                        [`new-process_name`]: e.target.value
                       }))}
-                      onBlur={() => handleEditSave(process.id, 'name')}
-                      onKeyPress={e => e.key === 'Enter' && handleEditSave(process.id, 'name')}
-                      autoFocus
                     />
-                  ) : process.name}
-                </TableCell>
-                <TableCell>{process.order}</TableCell>
-                <TableCell 
-                  isEditing={editMode[`${process.id}-note`]}
-                  onClick={() => handleEditStart(process.id, 'note', process.note)}
-                >
-                  {editMode[`${process.id}-note`] ? (
-                    <Input
-                      value={editedValues[`${process.id}-note`] || ''}
-                      onChange={e => setEditedValues(prev => ({
-                        ...prev,
-                        [`${process.id}-note`]: e.target.value
-                      }))}
-                      onBlur={() => handleEditSave(process.id, 'note')}
-                      onKeyPress={e => e.key === 'Enter' && handleEditSave(process.id, 'note')}
-                      autoFocus
-                    />
-                  ) : process.note}
-                </TableCell>
-                <TableCell>
-                  <DeleteButton
-                    onClick={() => handleDeleteProcess(process.id)}
+                  </TableCell>
+                  <TableCell>
+                      <SaveButton onClick={() => handleAddSave()}>저장</SaveButton>
+                  </TableCell>
+                </tr>
+              )}
+
+              <tr>
+                <TableCell colSpan={3} style={{ backgroundColor: '#FFF3E0' }}>
+                  <AddButton
+                    onClick={handleAddProcess}
                     disabled={!isEditable()}
                   >
-                    삭제
-                  </DeleteButton>
-                </TableCell>
-                <TableCell>
-                  <MoveButton
-                    onClick={() => handleMoveProcess(process.id, 'up')}
-                    disabled={!isEditable() || index === 0}
-                  >
-                    ▲
-                  </MoveButton>
-                </TableCell>
-                <TableCell>
-                  <MoveButton
-                    onClick={() => handleMoveProcess(process.id, 'down')}
-                    disabled={!isEditable() || index === processes.length - 1}
-                  >
-                    ▼
-                  </MoveButton>
+                    +
+                  </AddButton>
                 </TableCell>
               </tr>
-            ))}
-            <tr>
-              <TableCell colSpan={6} style={{ backgroundColor: '#FFF3E0' }}>
-                <AddButton
-                  onClick={handleAddProcess}
-                  disabled={!isEditable()}
-                >
-                  +
-                </AddButton>
-              </TableCell>
-            </tr>
-          </tbody>
-        )}
-      </Table>
+            </tbody>
+          )}
+        </Table>
+      </TableContainer>
     </ProcessWrapper>
   );
 };
