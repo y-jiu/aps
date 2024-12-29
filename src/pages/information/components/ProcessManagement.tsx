@@ -3,7 +3,7 @@ import '@xyflow/react/dist/style.css';
 import styled from 'styled-components';
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { getCompanyList, createCompany, updateCompany, deleteCompany, getProductList, updateProduct, createProduct, deleteProduct, getProcessList } from '../../../modules/information';
+import { getCompanyList, createCompany, updateCompany, deleteCompany, getProductList, updateProduct, createProduct, deleteProduct, getProcessList, getProcessManagement, receiveProcessManagement } from '../../../modules/information';
 import { ThunkDispatch } from 'redux-thunk';
 import { AnyAction } from 'redux';
 import ProcessManagementModal from './ProcessManagementModal';
@@ -34,11 +34,13 @@ const ProcessManagement = () => {
   const handleOpenModal = (product: any) => {
     setSelectedProduct(product);
     setModalIsOpen(true);
+    dispatch(getProcessManagement(product.product_name));
   };
 
   const handleCloseModal = () => {
     setModalIsOpen(false);
     setSelectedProduct(null);
+    // dispatch(receiveProcessManagement({}));
   };
 
   return (
@@ -60,7 +62,7 @@ const ProcessManagement = () => {
             <tbody>
               <tr>
                 <TableHeaderCell>제품 이름</TableHeaderCell>
-                <TableHeaderCell>제품 단위</TableHeaderCell>
+                <TableHeaderCell>품번</TableHeaderCell>
                 <TableHeaderCell>제품 분류</TableHeaderCell>
                 <TableHeaderCell>비고</TableHeaderCell>
                 <TableHeaderCell></TableHeaderCell>

@@ -60,7 +60,16 @@ interface IUpdateSheets {
   readonly data: any
 }
 
+interface IReceiveProcessManagement {
+  readonly type: 'information/RECEIVE_PROCESS_MANAGEMENT'
+  readonly processManagement: any
+}
 
-type ActionTypes = IReceiveCompany | IReceiveCompanyList | IUpdateCompany | IUpdateData | IUpdateRealTimeData | IUpdateSheets | IReceiveProductList | IReceiveProduct | IReceiveFacilityList | IReceiveFacility | IReceiveProcessList | IReceiveProcess
+interface IUpdateProcessManagement {
+  readonly type: 'information/UPDATE_PROCESS_MANAGEMENT'
+  readonly data: any
+}
+
+type ActionTypes = IReceiveCompany | IReceiveCompanyList | IUpdateCompany | IUpdateData | IUpdateRealTimeData | IUpdateSheets | IReceiveProductList | IReceiveProduct | IReceiveFacilityList | IReceiveFacility | IReceiveProcessList | IReceiveProcess | IReceiveProcessManagement | IUpdateProcessManagement
 
 export default ActionTypes

@@ -85,3 +85,19 @@ export const UpdateProcess = (data: any) => {
 export const DeleteProcess = (process_name: string) => {
   return axiosJSON.delete(`process/${process_name}`)
 }
+
+export const CreateProcessManagement = (data: any) => {
+  return axiosJSON.post(`processmanagement`, data)
+}
+
+export const UpdateProcessManagement = (data: any) => {
+  return axiosJSON.put(`processmanagement`, data)
+}
+
+export const DeleteProcessManagement = (product_name: string) => {
+  return axiosJSON.delete(`processmanagement?product_name=${product_name}`)
+}
+
+export const GetProcessManagement = (product_name: string) => {
+  return axiosJSON.get(`processmanagement?product_name=${product_name}`)
+}

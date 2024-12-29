@@ -9,8 +9,9 @@ interface AddProcessModalProps {
   isOpen: boolean;
   onClose: () => void;
   nodes: Array<{ node_id: number; process_name: string; }>;
+  edges: Array<{ from_node_id: number; to_node_id: number }>;
   onSubmit: (data: {
-    nodes: Array<{ node_id: number; process_name: string }>;
+    nodes: Array<{ node_id: number | null; process_name: string }>;
     edges: Array<{ from_node_id: number; to_node_id: number }>;
   }) => void;
   editMode?: boolean;
@@ -20,13 +21,15 @@ interface AddProcessModalProps {
     prev_node_id?: number;
     next_node_id?: number;
   };
+  onDelete?: (nodeId: number) => void;
 }
-
 const AddProcessModal = ({ 
   isOpen, 
   onClose, 
   nodes, 
+  edges,
   onSubmit, 
+  onDelete,
   editMode = false,
   initialData
 }: AddProcessModalProps) => {
@@ -48,27 +51,50 @@ const AddProcessModal = ({
   if (!isOpen) return null;
 
   const handleSubmit = () => {
-    const nodeId = editMode && initialData ? initialData.node_id : Math.max(...nodes.map(n => n.node_id)) + 1;
+    console.log('Selected Process:', selectedProcess);
     
-    const updatedNodes = [
-      ...(editMode ? nodes.filter(n => n.node_id !== initialData?.node_id) : []),
+    let nodeId = editMode && initialData ? initialData.node_id : null;
+    
+
+    if (nodeId === null) {
+      const maxExistingId = Math.max(
+        0,
+        ...nodes.map((n: any) => n.node_id),
+        ...nodes.filter(n => n.node_id !== null).map(n => n.node_id!)
+      );
+
+      console.log(maxExistingId);
+      nodeId = maxExistingId + 1;
+    }
+
+      const updatedNodes = [
+      ...(editMode ? nodes.filter(n => n.node_id !== initialData?.node_id) : nodes),
       {
         node_id: nodeId,
-        process_name: processList.find((p: any) => p.process_id === selectedProcess)?.process_name || ""
+        process_name: selectedProcess
       }
     ];
 
+    console.log(updatedNodes, nodeId);
+
+    const existingEdges = editMode ? 
+      edges.filter(edge => 
+        edge.from_node_id !== initialData?.node_id && 
+        edge.to_node_id !== initialData?.node_id
+      ) : edges;
+
     const newEdges = [
+      ...existingEdges,
       ...selectedPrevProcesses.map(prevId => ({
         from_node_id: parseInt(prevId),
-        to_node_id: nodeId
+        to_node_id: nodeId || 0
       })),
       ...selectedNextProcesses.map(nextId => ({
-        from_node_id: nodeId,
+        from_node_id: nodeId || 0,
         to_node_id: parseInt(nextId)
       }))
     ];
-
+    
     onSubmit({
       nodes: updatedNodes,
       edges: newEdges
@@ -86,6 +112,13 @@ const AddProcessModal = ({
     setSelectedPrevProcesses([]);
     setSelectedNextProcesses([]);
     onClose();
+  };
+
+  const handleDelete = () => {
+    if (editMode && initialData && onDelete) {
+      onDelete(initialData.node_id);
+      handleClose();
+    }
   };
 
   return (
@@ -140,6 +173,9 @@ const AddProcessModal = ({
             </select>
           </FormGroup>
           <ButtonGroup>
+            {editMode && (
+              <DeleteButton onClick={handleDelete}>삭제</DeleteButton>
+            )}
             <CancelButton onClick={onClose}>취소</CancelButton>
             <SubmitButton onClick={handleSubmit}>{editMode ? '수정' : '추가'}</SubmitButton>
           </ButtonGroup>
@@ -251,5 +287,19 @@ const SubmitButton = styled.button`
   
   &:hover {
     background: #0056b3;
+  }
+`;
+
+const DeleteButton = styled.button`
+  padding: 8px 16px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: auto;
+  
+  &:hover {
+    background: #c82333;
   }
 `; 

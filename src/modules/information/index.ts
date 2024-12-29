@@ -14,6 +14,8 @@ const RECEIVE_FACILITY = 'information/RECEIVE_FACILITY'
 const RECEIVE_PROCESS_LIST = 'information/RECEIVE_PROCESS_LIST'
 const RECEIVE_PROCESS = 'information/RECEIVE_PROCESS'
 const UPDATE_COMPANY = 'information/UPDATE_COMPANY'
+const RECEIVE_PROCESS_MANAGEMENT = 'information/RECEIVE_PROCESS_MANAGEMENT'
+const UPDATE_PROCESS_MANAGEMENT = 'information/UPDATE_PROCESS_MANAGEMENT'
 
 export const receiveCompany = (company: any) => ({
   type: RECEIVE_COMPANY,
@@ -54,6 +56,16 @@ export const receiveProcess = (process: any) => ({
   type: RECEIVE_PROCESS,
   process
 })
+
+export const receiveProcessManagement = (processManagement: any) => ({
+  type: RECEIVE_PROCESS_MANAGEMENT,
+  processManagement
+})
+
+// export const updateProcessManagement = (processManagement: any) => ({
+//   type: UPDATE_PROCESS_MANAGEMENT,
+//   processManagement
+// })
 
 export const getCompanyList = () => async (dispatch: Dispatch) => {
   const response = await InformationAPIUtil.GetCompanyList();
@@ -158,6 +170,26 @@ export const deleteProcess = (process_name: string) => async (dispatch: ThunkDis
   dispatch(getProcessList());
 };
 
+export const getProcessManagement = (product_name: string) => async (dispatch: Dispatch) => {
+  const response = await InformationAPIUtil.GetProcessManagement(product_name);
+  dispatch(receiveProcessManagement(response.data));
+};
+
+export const createProcessManagement = (data: any) => async (dispatch: ThunkDispatch<any, any, AnyAction>) => {
+  const response = await InformationAPIUtil.CreateProcessManagement(data);
+  dispatch(getProcessManagement(data.product_name));
+};
+
+export const updateProcessManagement = (data: any) => async (dispatch: ThunkDispatch<any, any, AnyAction>) => {
+  const response = await InformationAPIUtil.UpdateProcessManagement(data);
+  dispatch(getProcessManagement(data.product_name));
+};
+
+export const deleteProcessManagement = (product_name: string) => async (dispatch: ThunkDispatch<any, any, AnyAction>) => {
+  const response = await InformationAPIUtil.DeleteProcessManagement(product_name);
+  dispatch(getProcessManagement(product_name));
+};
+
 export interface IInformationState {
   company: any
   companyList: any[]
@@ -167,6 +199,7 @@ export interface IInformationState {
   facilityList: any[]
   process: any
   processList: any[]
+  processManagement: any
 }
 
 export const initialState: IInformationState = {
@@ -177,7 +210,8 @@ export const initialState: IInformationState = {
   facility: {},
   facilityList: [],
   process: {},
-  processList: []
+  processList: [],
+  processManagement: {}
 }
 
 const reducer = (
@@ -222,6 +256,11 @@ const reducer = (
       return {
         ...newState,
         process: action.process
+      }
+    case RECEIVE_PROCESS_MANAGEMENT:
+      return {
+        ...newState,
+        processManagement: action.processManagement
       }
     default:
       return state

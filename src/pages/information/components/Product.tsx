@@ -124,7 +124,7 @@ const Product = () => {
             <tbody>
               <tr>
                 <TableHeaderCell>제품 이름</TableHeaderCell>
-                <TableHeaderCell>제품 단위</TableHeaderCell>
+                <TableHeaderCell>품번</TableHeaderCell>
                 <TableHeaderCell>제품 분류</TableHeaderCell>
                 <TableHeaderCell>비고</TableHeaderCell>
                 <TableHeaderCell>삭제</TableHeaderCell>
