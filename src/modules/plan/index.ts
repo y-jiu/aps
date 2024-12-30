@@ -153,7 +153,7 @@ export const setDayPlanBOM = (payload: { day: Date }) => ({
 
 export const setIsExpanded = (isExpanded: boolean) => ({
   type: SET_IS_EXPANDED,
-  payload: isExpanded
+  isExpanded
 });
 
 export const setFilterQuery = (filterQuery: any) => ({

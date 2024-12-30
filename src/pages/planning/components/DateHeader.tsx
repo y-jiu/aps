@@ -8,6 +8,7 @@ import { getPlanByDate, getPlanByMonth, initializeDates, setDayPlanBOM, setFilte
 import { ThunkDispatch } from 'redux-thunk';
 import { AnyAction } from 'redux';
 import { IAppState } from '../../../types';
+
 const HeaderWrapper = styled.div`
   padding: 0.75rem;
   border-radius: 0.5rem;
@@ -25,7 +26,7 @@ const ContentContainer = styled.div`
 
 const ExpandButton = styled.button<{ isExpanded: boolean }>`
   position: absolute;
-  left: 8px;
+  left: ${props => props.isExpanded ? '0px' : '8px'};
   top: ${props => props.isExpanded ? '0px' : '50%'};
   padding: 5px 10px;
   border-radius: 0.25rem;
@@ -34,6 +35,7 @@ const ExpandButton = styled.button<{ isExpanded: boolean }>`
   background-color: ${props => props.isExpanded ? '#fffcce' : '#ffffff'};
   border: 1px solid #ddd;
   cursor: pointer;
+  white-space: nowrap;
   
   &:hover {
     background-color: ${props => props.isExpanded ? '#fff9b0' : '#f5f5f5'};
@@ -48,6 +50,7 @@ const DateLabel = styled.p`
   display: flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
 `;
 
 // const CustomDatePicker = styled(DatePicker)`
@@ -67,7 +70,7 @@ const SearchButton = styled.button`
   margin-left: 0.5rem;
   font-size: 0.875rem;
   cursor: pointer;
-
+  white-space: nowrap;
   &:hover {
     background-color: #1565c0;
   }
@@ -89,6 +92,7 @@ const Tab = styled.button<{ isActive: boolean }>`
   color: ${props => props.isActive ? '#ffffff' : '#000000'};
   cursor: pointer;
   font-size: 12px;
+  white-space: nowrap;
 
   &:hover {
     background-color: ${props => props.isActive ? '#1565c0' : '#f5f5f5'};
@@ -102,8 +106,8 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [dateAttributes, setDateAttributes] = useState<any[]>([]);
   const [searchType, setSearchType] = useState<'daily' | 'monthly'>('daily');
-  const [isExpanded, setIsExpanded] = useState(false);
-  // const isExpanded = useSelector((state: IAppState) => state.plan.isExpanded);
+  // const [isExpanded, setIsExpanded] = useState(false);
+  const isExpanded = useSelector((state: IAppState) => state.plan.isExpanded);
   const bomDay = useSelector((state: IAppState) => state.plan.day);
 
   console.log(isExpanded)
@@ -169,10 +173,11 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
   };
 
   const handleExpandCollapse = () => {
-    // dispatch(setIsExpanded(!isExpanded));
-    setIsExpanded(!isExpanded);
+    dispatch(setIsExpanded(!isExpanded));
+    // setIsExpanded(!isExpanded);
   };
 
+  console.log(isExpanded)
   return (
     <HeaderWrapper>
       <ContentContainer>
@@ -188,6 +193,7 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
         <Tab 
           isActive={searchType === 'daily'}
           onClick={() => setSearchType('daily')}
+          style={{ marginLeft: '70px' }}
         >
           일별 검색
         </Tab>

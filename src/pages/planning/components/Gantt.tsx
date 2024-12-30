@@ -4,18 +4,21 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import resourceTimelinePlugin from '@fullcalendar/resource-timeline';
+import timelinePlugin from '@fullcalendar/timeline';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 // import { useAuth } from '../../../hooks/useAuth';
 import Achievement from './Achievement';
 import { useGantt } from '../../../hooks/useGantt';
+import { getFacilityList } from '../../../modules/information';
+import { useDispatch, useSelector } from 'react-redux';
 import './styles.css';
+import { ThunkDispatch } from 'redux-thunk';
+import { AnyAction } from 'redux';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
-
 
 interface GanttProps {
   onEventAchievementUpdated: () => void;
@@ -26,11 +29,15 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
   const [showAchievement, setShowAchievement] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const calendarRef = useRef<FullCalendar>(null);
-  // const { role } = useAuth();
+  const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
   const { getGanttData, updateGanttEvent, createGanttEvent } = useGantt();
-
-  const calendarOptions = {
-    plugins: [dayGridPlugin, interactionPlugin, resourceTimelinePlugin],
+  const [calendarOptions, setCalendarOptions] = useState<any>({
+    plugins: [
+      dayGridPlugin,
+      interactionPlugin,
+      resourceTimelinePlugin,
+      timelinePlugin
+    ],
     schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
     initialView: 'resourceTimelineMonth',
     headerToolbar: {
@@ -44,10 +51,10 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
     slotDuration: '24:00:00',
     eventResizableFromStart: true,
     resources: [
-      { id: 'facility-1', title: '설비 1' },
-      { id: 'facility-2', title: '설비 2' },
-      { id: 'facility-3', title: '설비 3' },
-      { id: 'facility-4', title: '설비 4' },
+      // { id: 'facility-1', title: '설비 1' },
+      // { id: 'facility-2', title: '설비 2' },
+      // { id: 'facility-3', title: '설비 3' },
+      // { id: 'facility-4', title: '설비 4' },
     ],
     events: [
       {
@@ -75,7 +82,29 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
         backgroundColor: '#42A5F5',
       },
     ],
-  };
+  });
+
+  const facilityList = useSelector((state: any) => state.information.facilityList);
+  console.log(facilityList);
+  useEffect(() => {
+    dispatch(getFacilityList());
+  }, []);
+
+  useEffect(() => {
+    if (facilityList) {
+      setCalendarOptions((prevOptions: any) => ({
+        ...prevOptions,
+        resources: facilityList
+          .sort((a: any, b: any) => a.facility_order - b.facility_order)
+          .map((facility: any) => ({ 
+            id: facility.id, 
+            title: facility.facility_name 
+          }))
+      }));
+    }
+  }, [facilityList]);
+
+  // const calendarOptions = 
 
   const handleEventClick = (info: any) => {
     setSelectedEvent(info.event);

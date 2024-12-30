@@ -14,12 +14,13 @@ import {
   getPlanByMonth
 } from '../../../modules/plan';
 import { IAppState } from '../../../types';
+import { getProcessManagement } from '../../../modules/information';
 
 const TableWrapper = styled.div`
   // display: flex;
   // flex-direction: row;
   flex-wrap: nowrap;
-  width: 360px;
+  width: 500px;
   overflow: auto;
   white-space: nowrap;
 `;
@@ -109,7 +110,7 @@ interface PlanTableProps {
   onFindEvent: (event: any) => void;
 }
 
-// // Add mock data
+// Add mock data
 // const mockPlanData: PlanData[] = [
 //   {
 //     id: '1',
@@ -204,6 +205,7 @@ const PlanTable: React.FC<PlanTableProps> = ({ onFindEvent }) => {
     dispatch(setSelectedPlanState(plan.state));
     // dispatch(setSelectedPlanBomState(plan.bom_state));
     onFindEvent(plan);
+    dispatch(getProcessManagement(plan.product_name));
   };
 
   const handleStateUpdate = async (index: number) => {
@@ -228,7 +230,6 @@ const PlanTable: React.FC<PlanTableProps> = ({ onFindEvent }) => {
     <TableWrapper>
       <Table>
         <thead>
-            
           <tr>
             <TableHeader>상태</TableHeader>
             <TableHeader>회사</TableHeader>
