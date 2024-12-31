@@ -1,4 +1,4 @@
-import { ReactFlow } from '@xyflow/react';
+import { ReactFlow, ReactFlowProvider, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
@@ -6,6 +6,7 @@ import { createProcessManagement, updateProcessManagement, deleteProcessManageme
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from 'redux-thunk';
 import { AnyAction } from 'redux';
+import { useNavigate } from 'react-router-dom';
 
 const ProcessManagement = () => {
   const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
@@ -14,11 +15,67 @@ const ProcessManagement = () => {
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [nodes, setNodes] = useState<any>([]);
   const [edges, setEdges] = useState<any>([]);
+  const [draggedNode, setDraggedNode] = useState<any>(null);
+  const reactFlowInstance = useReactFlow();
 
   const processManagement = useSelector((state: any) => state.information.processManagement);
   
   console.log(processManagement);
-  
+
+  const handleNodeDragStart = (event: any, node: any) => {
+    const originalNode = processManagement.nodes.find((n: any) => n.node_id.toString() === node.id);
+    setDraggedNode(originalNode);
+    
+    // Create a draggable element with process data
+    const ghost = document.createElement('div');
+    ghost.id = 'drag-ghost';
+    ghost.innerHTML = originalNode?.process_name || '';
+    ghost.setAttribute('data-process-id', node.id);
+    ghost.setAttribute('data-process-name', originalNode?.process_name || '');
+    ghost.style.cssText = `
+      position: fixed;
+      background: white;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.8;
+    `;
+    document.body.appendChild(ghost);
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      const ghost = document.getElementById('drag-ghost');
+      if (ghost) {
+        ghost.style.left = `${e.clientX + 10}px`;
+        ghost.style.top = `${e.clientY + 10}px`;
+      }
+    };
+
+    const handleMouseUp = (e: MouseEvent) => {
+      const ghost = document.getElementById('drag-ghost');
+      if (ghost) {
+        // Dispatch custom event with process data
+        const dropEvent = new CustomEvent('processDrop', {
+          detail: {
+            processId: node.id,
+            processName: originalNode?.process_name,
+            x: e.clientX,
+            y: e.clientY
+          }
+        });
+        document.dispatchEvent(dropEvent);
+        ghost.remove();
+      }
+      setDraggedNode(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
   const calculateNodePositions = () => {
     const HORIZONTAL_SPACING = 200;
     const VERTICAL_SPACING = 100;
@@ -110,12 +167,20 @@ const ProcessManagement = () => {
     setIsEditModalOpen(true);
   };
 
-  return (
+  return (  
     <Container>
       <ReactFlow 
         nodes={nodes}
         edges={edges}
         onNodeClick={handleNodeClick}
+        onNodeDragStart={handleNodeDragStart}
+        draggable={true}
+        panOnDrag={false}
+        panOnScroll={false}
+        zoomOnScroll={false}
+        zoomOnPinch={false}
+        zoomOnDoubleClick={false}
+    
         fitView
       />
     </Container>

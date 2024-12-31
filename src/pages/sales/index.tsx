@@ -183,11 +183,11 @@ const Sales = () => {
     }));
   };
 
-
   // Handle clicking add row button
   const handleAddRow = (index: number) => {
     // setInsertIndex(index);
     setInsertRow(!insertRow);
+    
     setNewRow({
       // plan_date: startDate.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, ''),
       company_name: '',

@@ -7,6 +7,7 @@ import Gantt from './components/Gantt';
 import { useSelector } from 'react-redux';
 import { IAppState } from '../../types';
 import ProcessManagement from './components/ProcessManagement';
+import { ReactFlowProvider } from '@xyflow/react';
 
 
 const Container = styled.div`
@@ -53,7 +54,9 @@ const Planning: React.FC = () => {
 
   return (
     <Container>
-      <ProcessManagement />
+      <ReactFlowProvider>
+        <ProcessManagement />
+      </ReactFlowProvider>
       <DetailWrapper>
         <ContentWrapper isExpanded={isExpanded}>
           <DateHeader />

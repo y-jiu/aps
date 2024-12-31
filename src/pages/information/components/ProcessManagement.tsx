@@ -40,7 +40,6 @@ const ProcessManagement = () => {
   const handleCloseModal = () => {
     setModalIsOpen(false);
     setSelectedProduct(null);
-    // dispatch(receiveProcessManagement({}));
   };
 
   return (

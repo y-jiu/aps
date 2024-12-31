@@ -39,7 +39,7 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
       timelinePlugin
     ],
     schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
-    initialView: 'resourceTimelineMonth',
+    initialView: 'resourceTimelineDay',
     headerToolbar: {
       left: 'title',
       right: 'resourceTimelineDay,resourceTimelineWeek,resourceTimelineMonth'
@@ -48,7 +48,11 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
     droppable: true,
     height: 'auto',
     resourceAreaWidth: 160,
-    slotDuration: '24:00:00',
+    slotDuration: '01:00:00',
+    slotLabelFormat: [
+      { month: 'long', year: 'numeric', day: 'numeric', weekday: 'short' }, // top level of text
+      { hour: 'numeric', minute: '2-digit', hour12: false } // lower level of text
+    ],
     eventResizableFromStart: true,
     resources: [
       // { id: 'facility-1', title: '설비 1' },
@@ -168,6 +172,61 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
     }
   };
 
+  useEffect(() => {
+    // Add listener for process drop events
+    const handleProcessDrop = (e: CustomEvent) => {
+      const calendar = calendarRef.current?.getApi();
+      if (!calendar) return;
+
+      const calendarEl = document.querySelector('.fc-timeline-slots');
+      if (!calendarEl) return;
+
+      const rect = calendarEl.getBoundingClientRect();
+      const { x, y, processId, processName } = e.detail;
+
+      // Update the selector to match the current FullCalendar class
+      const resourceAreaEl = document.querySelector('.fc-datagrid-body');
+      
+      if (!resourceAreaEl) return;
+
+      const resources = calendar.getResources();
+      const resourceHeight = resourceAreaEl.getBoundingClientRect().height / resources.length;
+      const relativeY = y - rect.top;
+      const resourceIndex = Math.floor(relativeY / resourceHeight);
+      const targetResource = resources[resourceIndex];
+
+      if (!targetResource) return;
+
+      // Get hit information at drop point
+      const viewApi = calendar.view;
+      const start = viewApi.activeStart;
+      const end = viewApi.activeEnd;
+      const timeMs = start.valueOf() + ((x - rect.left) / rect.width) * (end.valueOf() - start.valueOf());
+      const date = new Date(timeMs);
+
+      if (date) {
+        setCalendarOptions((prevOptions: any) => ({
+          ...prevOptions,
+          events: [...prevOptions.events, {
+            resourceId: targetResource.id,
+            title: processName,
+            start: date,
+            end: dayjs(date).add(1, 'hour').toDate(),
+            allDay: false,
+            extendedProps: {
+              processId: processId
+            }
+          }]
+        }));
+      }
+    };
+
+    document.addEventListener('processDrop', handleProcessDrop as EventListener);
+    return () => {
+      document.removeEventListener('processDrop', handleProcessDrop as EventListener);
+    };
+  }, []);
+
   return (
     <GanttWrapper>
       <HeaderContainer>
@@ -204,6 +263,7 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
             eventClick={handleEventClick}
             eventDrop={handleEventDrop}
             eventReceive={handleEventReceive}
+            droppable={true}
           />
         </CalendarContainer>
       </div>

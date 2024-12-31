@@ -110,7 +110,6 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
   const isExpanded = useSelector((state: IAppState) => state.plan.isExpanded);
   const bomDay = useSelector((state: IAppState) => state.plan.day);
 
-  console.log(isExpanded)
   useEffect(() => {
     initializeDate();
   }, []);
@@ -134,16 +133,13 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
 
     // await dispatch(getPlanList({ date: formattedDate, searchType }) as any);
     dispatch(setDayPlanBOM({ day: selectedDate }));
-    // console.log(formattedDate)
 
     if (searchType === 'daily') {
-      // dispatch(setDayPlanBOM({ day: selectedDate }));
       dispatch(getPlanByDate(formattedDate));
     } else {
       const year = formattedDate.split('/')[0];
       const month = formattedDate.split('/')[1];
       dispatch(getPlanByMonth(year, month));
-      // dispatch(setDayPlanBOM({ day: selectedDate }));
     }
   };
 
@@ -177,7 +173,6 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
     // setIsExpanded(!isExpanded);
   };
 
-  console.log(isExpanded)
   return (
     <HeaderWrapper>
       <ContentContainer>
