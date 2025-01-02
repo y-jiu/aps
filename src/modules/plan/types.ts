@@ -32,7 +32,7 @@ interface ISetPlanData {
 
 interface ISetSelectedPlanId {
   readonly type: 'plan/SET_SELECTED_PLAN_ID'
-  readonly id: string
+  readonly id: number
 }
 
 interface ISetSelectedPlanState {
@@ -121,6 +121,11 @@ interface IReceivePlanList {
   readonly planList: any
 }
 
+interface IReceiveGantt {
+  readonly type: 'plan/RECEIVE_GANTT'
+  readonly gantt: any
+}
+
 type ActionTypes = 
 ISetPlanData 
 | ISetSelectedPlanId 
@@ -141,4 +146,5 @@ ISetPlanData
 | ISetIsExpanded
 | ISetFilterQuery
 | IReceivePlanList
+| IReceiveGantt
 export default ActionTypes

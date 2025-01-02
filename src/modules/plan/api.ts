@@ -62,3 +62,23 @@ export const updatePlanState = (data: any) => {
 export const deletePlan = (id: string) => {
   return axiosJSON.delete(`plan/${id}`)
 }
+
+export const getGantt = (start: string, end?: string) => {
+  return axiosJSON.get(`gantt/${start}${end ? `?end_date=${end}` : ''}`)
+}
+
+export const createGantt = (data: any) => {
+  return axiosJSON.post(`gantt`, data)
+}
+
+export const updateGantt = (data: any) => {
+  return axiosJSON.put(`gantt`, data)
+}
+
+export const deleteGantt = (id: string) => {
+  return axiosJSON.delete(`gantt/${id}`)
+}
+
+export const getGanttCalendar = (year: string, month: string) => {
+  return axiosJSON.get(`gantt/calendar/${year}/${month}`)
+}

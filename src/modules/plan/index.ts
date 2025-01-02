@@ -4,7 +4,7 @@ import { Dispatch } from 'redux';
 
 export interface PlanState {
   planDatas: any[];
-  selectedPlanId: string;
+  selectedPlanId: number;
   selectedPlanState: string;
   selectedPlanBomState: string;
   day_planBOM: {
@@ -23,11 +23,12 @@ export interface PlanState {
   isExpanded: boolean;
   filterQuery: any;
   planList: any[];
+  gantt: any;
 }
 
 export const initialState: PlanState = {
   planDatas: [],
-  selectedPlanId: '',
+  selectedPlanId: 0,
   selectedPlanState: '',
   selectedPlanBomState: '',
   day_planBOM: {
@@ -45,7 +46,8 @@ export const initialState: PlanState = {
     endDay: null
   },
   filterQuery: {},
-  planList: []
+  planList: [],
+  gantt: []
 };
 
 // Action Types
@@ -68,6 +70,7 @@ const SET_DAY_PLAN_BOM = 'plan/SET_DAY_PLAN_BOM';
 const SET_IS_EXPANDED = 'plan/SET_IS_EXPANDED';
 const SET_FILTER_QUERY = 'plan/SET_FILTER_QUERY';
 const RECEIVE_PLAN_LIST = 'plan/RECEIVE_PLAN_LIST';
+const RECEIVE_GANTT = 'plan/RECEIVE_GANTT';
 
 // Action Creators
 export const setPlanData = (planData: any[]) => ({
@@ -164,6 +167,11 @@ export const setFilterQuery = (filterQuery: any) => ({
 export const receivePlanList = (planList: any) => ({
   type: RECEIVE_PLAN_LIST,
   planList
+});
+
+export const receiveGantt = (gantt: any) => ({
+  type: RECEIVE_GANTT,
+  gantt
 });
 
 // Thunks
@@ -323,6 +331,31 @@ export const getPlanByMonth = (year: string, month: string) => async (dispatch: 
   dispatch(receivePlanList(response.data));
 };
 
+export const getGantt = (start: string, end?: string) => async (dispatch: Dispatch) => {
+  const response = await PlanAPIUtil.getGantt(start, end);
+  dispatch(receiveGantt(response.data));
+};
+
+// export const getGanttCalendar = (year: string, month: string) => async (dispatch: Dispatch) => {
+//   const response = await PlanAPIUtil.getGanttCalendar(year, month);
+//   dispatch(receiveGantt(response.data));
+// };
+
+export const createGantt = (data: any) => async (dispatch: Dispatch) => {
+  const response = await PlanAPIUtil.createGantt(data);
+  getGantt(response.data.start_date, response.data.end_date)(dispatch);
+};
+
+export const updateGantt = (data: any) => async (dispatch: Dispatch) => {
+  const response = await PlanAPIUtil.updateGantt(data);
+  getGantt(response.data.start_date, response.data.end_date)(dispatch);
+};
+
+export const deleteGantt = (id: string) => async (dispatch: Dispatch) => {
+  const response = await PlanAPIUtil.deleteGantt(id);
+  getGantt(response.data.start_date, response.data.end_date)(dispatch);
+};
+
 // Reducer
 const reducer = (state: PlanState = initialState, action: ActionTypes) => {
   Object.freeze(state);
@@ -393,6 +426,16 @@ const reducer = (state: PlanState = initialState, action: ActionTypes) => {
       return {
         ...newState,
         planDatas: action.planList
+      };
+    case RECEIVE_GANTT:
+      return {
+        ...newState,
+        gantt: action.gantt
+      };
+    case SET_SELECTED_PLAN_ID:
+      return {
+        ...newState,
+        selectedPlanId: action.id
       };
     default:
       return state;

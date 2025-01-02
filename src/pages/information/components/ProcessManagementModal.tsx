@@ -20,7 +20,6 @@ const ProcessManagementModal = (
 
   const processManagement = useSelector((state: any) => state.information.processManagement);
   
-  console.log(processManagement);
   // const mockData = {
   //   "product_name": "213fse",
   //   "nodes": [
@@ -138,7 +137,6 @@ const ProcessManagementModal = (
         .forEach((edge: any) => calculateLevel(edge.to_node_id, level + 1));
     };
 
-    console.log(processManagement);
     // Find root nodes (nodes with no incoming edges)
     const rootNodes = processManagement.nodes
       .filter((node: any) => !processManagement.edges.some((edge: any) => edge.to_node_id === node.node_id))
@@ -258,7 +256,7 @@ const ProcessManagementModal = (
         <div>공정 관리 - {product.product_name}</div>
         <HeaderButtonWrapper>
           <AddButton onClick={() => setIsAddModalOpen(true)}>공정 추가</AddButton>
-          {processManagement.nodes.length > 0 && (
+          {processManagement?.nodes && processManagement?.nodes.length > 0 && (
             <DeleteAllButton onClick={handleDeleteAllProcesses}>전체 삭제</DeleteAllButton>
           )}
           <CloseButton onClick={() => onClose()}>×</CloseButton>

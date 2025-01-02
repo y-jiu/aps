@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import './styles.css';
 import { ThunkDispatch } from 'redux-thunk';
 import { AnyAction } from 'redux';
+import { createGantt, getGantt, deleteGantt } from '../../../modules/plan';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -24,13 +25,41 @@ interface GanttProps {
   onEventAchievementUpdated: () => void;
 }
 
+
 const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
-  const [startDay, setStartDay] = useState<Date | null>(null);
+  const [startDay, setStartDay] = useState<Date>(new Date());
   const [showAchievement, setShowAchievement] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const calendarRef = useRef<FullCalendar>(null);
   const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
-  const { getGanttData, updateGanttEvent, createGanttEvent } = useGantt();
+  // const { getGanttData, updateGanttEvent, createGanttEvent } = useGantt();
+
+  const gantt = useSelector((state: any) => state.plan.gantt);
+  const selectedPlanId = useSelector((state: any) => state.plan.selectedPlanId);
+
+  const mockdata = [
+    {
+      "id": 1,
+      "title": "string",
+      "process_name": "string",
+      "plan_id": 1,
+      "processnode_id": 1,
+      "facility_id": 1,
+      "start_date": "2024-12-31T09:05:09.088Z",
+      "end_date": "2024-12-31T09:05:09.088Z"
+    },
+    {
+      "id": 2,
+      "title": "string",
+      "process_name": "string",
+      "plan_id": 1,
+      "processnode_id": 1,
+      "facility_id": 1,
+      "start_date": "2024-12-31T19:05:09.088Z",
+      "end_date": "2024-12-31T20:05:09.088Z"
+    }
+  ]
+
   const [calendarOptions, setCalendarOptions] = useState<any>({
     plugins: [
       dayGridPlugin,
@@ -89,7 +118,6 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
   });
 
   const facilityList = useSelector((state: any) => state.information.facilityList);
-  console.log(facilityList);
   useEffect(() => {
     dispatch(getFacilityList());
   }, []);
@@ -108,7 +136,88 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
     }
   }, [facilityList]);
 
-  // const calendarOptions = 
+  useEffect(() => {
+    const startDate = dayjs(startDay)
+      .format('YYYYMMDD');
+
+    dispatch(getGantt(startDate));
+
+    // const events = mockdata.map((event: any) => ({
+    //   id: event.id,
+    //   resourceId: event.facility_id,
+    //   title: event.process_name,
+    //   start: dayjs(event.start_date).format('YYYY-MM-DDTHH:mm:ss'),
+    //   end: dayjs(event.end_date).format('YYYY-MM-DDTHH:mm:ss'),
+    //   allDay: false,
+    //   extendedProps: {
+    //     processId: event.processnode_id
+    //   }
+    // }));
+
+    // setCalendarOptions((prevOptions: any) => ({
+    //   ...prevOptions,
+    //   events: events
+    // }));
+  }, []);
+
+  useEffect(() => {
+    if (gantt) {
+      const events = gantt.map((event: any) => ({
+        id: event.id,
+        resourceId: event.facility_id,
+        title: event.process_name,
+        start: dayjs(event.start_date).format('YYYY-MM-DDTHH:mm:ss'),
+        end: dayjs(event.end_date).format('YYYY-MM-DDTHH:mm:ss'),
+        allDay: false,
+        extendedProps: {
+          processId: event.processnode_id
+        }
+      }));
+
+      setCalendarOptions((prevOptions: any) => ({
+        ...prevOptions,
+        events: events,
+        eventContent: (arg: any) => {
+          const handleDelete = (e: MouseEvent) => {
+            e.stopPropagation(); // Prevent event click from triggering
+            handleEventDelete(arg.event.id);
+          };
+
+          return {
+            html: `
+              <div class="fc-event-main-frame" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div class="fc-event-title-container">
+                  <div class="fc-event-title fc-sticky">${arg.event.title}</div>
+                </div>
+                <button onclick="(function(e) { e.stopPropagation(); console.log('${arg.event.id}'); document.dispatchEvent(new CustomEvent('deleteGanttEvent', {detail: {eventId: '${arg.event.id}'}})); })(event)" 
+                  class="event-delete-btn" 
+                  style="
+                    background: transparent;
+                    border: none;
+                    color: #ff4444;
+                    cursor: pointer;
+                    padding: 2px 5px;
+                    margin-right: 2px;
+                  ">×</button>
+              </div>
+            `
+          };
+        }
+      }));
+    }
+  }, [gantt]);
+
+  useEffect(() => {
+    const handleDeleteEvent = (e: CustomEvent) => {
+      const { eventId } = e.detail;
+      handleEventDelete(eventId);
+    };
+
+    document.addEventListener('deleteGanttEvent', handleDeleteEvent as EventListener);
+    return () => {
+      document.removeEventListener('deleteGanttEvent', handleDeleteEvent as EventListener);
+    };
+  }, []);
 
   const handleEventClick = (info: any) => {
     setSelectedEvent(info.event);
@@ -124,12 +233,12 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
         .tz('Asia/Seoul')
         .format('YYYY-MM-DDTHH:mm:ss');
 
-      await updateGanttEvent({
-        id: info.event.id,
-        start_date: startDate,
-        end_date: endDate,
-        facility_name: info.event._def.resourceIds[0],
-      });
+      // await updateGanttEvent({
+      //   id: info.event.id,
+      //   start_date: startDate,
+      //   end_date: endDate,
+      //   facility_name: info.event._def.resourceIds[0],
+      // });
 
       onEventAchievementUpdated();
     } catch (error) {
@@ -154,21 +263,40 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
         .tz('Asia/Seoul')
         .format('YYYY-MM-DDTHH:mm:ss');
 
-      const newEvent = await createGanttEvent({
-        bom_id: Number(info.draggedEl.dataset.id),
-        start_date: startDate,
-        end_date: endDate,
-        facility_name: info.draggedEl.dataset.facility,
-      });
+      // const newEvent = await createGanttEvent({
+      //   bom_id: Number(info.draggedEl.dataset.id),
+      //   start_date: startDate,
+      //   end_date: endDate,
+      //   facility_name: info.draggedEl.dataset.facility,
+      // });
 
-      // Update the event with returned data
-      info.event.setProp('id', newEvent.id);
-      info.event.setDates(newEvent.start_date, newEvent.end_date);
+      // // Update the event with returned data
+      // info.event.setProp('id', newEvent.id);
+      // info.event.setDates(newEvent.start_date, newEvent.end_date);
       
       onEventAchievementUpdated();
     } catch (error) {
       console.error('Failed to create event:', error);
       info.revert();
+    }
+  };
+
+  const handleEventDelete = async (eventId: string) => {
+    try {
+      // First remove from UI
+      setCalendarOptions((prevOptions: any) => ({
+        ...prevOptions,
+        events: prevOptions.events.filter((event: any) => event.id !== eventId)
+      }));
+
+      // Then delete from backend
+      // await dispatch(deleteGantt(eventId));
+    } catch (error) {
+      console.error('Failed to delete event:', error);
+      // Revert UI if backend delete fails
+      const startDate = dayjs(startDay).format('YYYYMMDD');
+      dispatch(getGantt(startDate)); // Refresh data from server
+      alert('일정 삭제에 실패했습니다.'); // "Failed to delete schedule"
     }
   };
 
@@ -194,6 +322,7 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
       const relativeY = y - rect.top;
       const resourceIndex = Math.floor(relativeY / resourceHeight);
       const targetResource = resources[resourceIndex];
+      // console.log(targetResource);
 
       if (!targetResource) return;
 
@@ -203,6 +332,7 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
       const end = viewApi.activeEnd;
       const timeMs = start.valueOf() + ((x - rect.left) / rect.width) * (end.valueOf() - start.valueOf());
       const date = new Date(timeMs);
+      const endDate = dayjs(date).add(1, 'hour').toDate();
 
       if (date) {
         setCalendarOptions((prevOptions: any) => ({
@@ -218,6 +348,14 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
             }
           }]
         }));
+
+        // dispatch(createGantt({
+        //   processnode_id: processId,
+        //   plan_id: selectedPlanId,
+        //   start_date: date,
+        //   end_date: endDate,
+        //   facility_id: targetResource.id,
+        // }));
       }
     };
 
@@ -226,6 +364,12 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
       document.removeEventListener('processDrop', handleProcessDrop as EventListener);
     };
   }, []);
+
+  const handleDateSearch = () => {
+    if (startDay && calendarRef.current) {
+      calendarRef.current.getApi().gotoDate(startDay);
+    }
+  };
 
   return (
     <GanttWrapper>
@@ -236,7 +380,7 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
           value={startDay ? dayjs(startDay).format('YYYY-MM-DD') : ''}
           onChange={(e) => setStartDay(new Date(e.target.value))}
         />
-        <SearchButton onClick={() => getGanttData(startDay)}>
+        <SearchButton onClick={handleDateSearch}>
           검색
         </SearchButton>
       </HeaderContainer>
