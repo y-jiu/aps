@@ -15,6 +15,7 @@ const Modal = styled.div`
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   max-width: 600px;
   width: 100%;
+  z-index: 1000;
 `;
 
 const Table = styled.table`
@@ -38,6 +39,20 @@ const Table = styled.table`
 const EditableCell = styled.td<{ isEditing?: boolean }>`
   background: ${props => props.isEditing ? '#fff3e0' : 'transparent'};
   cursor: ${props => props.isEditing ? 'text' : 'pointer'};
+`;
+
+const CloseButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-left: auto;
+  display: block;
+  
+  &:hover {
+    opacity: 0.7;
+  }
 `;
 
 interface AchievementProps {
@@ -71,6 +86,7 @@ const Achievement: React.FC<AchievementProps> = ({ event, onClose, onUpdate }) =
 
   return (
     <Modal>
+      <CloseButton onClick={onClose}>&times;</CloseButton>
       <Table>
         <thead>
           <tr>

@@ -182,7 +182,7 @@ interface PlanTableProps {
 const PlanTable: React.FC<PlanTableProps> = ({ onFindEvent }) => {
   const dispatch = useDispatch<ThunkDispatch<IAppState, unknown, AnyAction>>();
   const [selectedRow, setSelectedRow] = useState<string | null>(null);
-  
+
   useEffect(() => {
     // dispatch(getPlanList({ start: '20240320', end: '20240324' }));
   }, [dispatch]);

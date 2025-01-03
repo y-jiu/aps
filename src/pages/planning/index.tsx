@@ -51,11 +51,12 @@ const Planning: React.FC = () => {
   };
 
   const isExpanded = useSelector((state: IAppState) => state.plan.isExpanded);
+  const processManagement = useSelector((state: any) => state.information.processManagement);
 
   return (
     <Container>
       <ReactFlowProvider>
-        <ProcessManagement />
+        {processManagement?.nodes?.length > 0 && <ProcessManagement />}
       </ReactFlowProvider>
       <DetailWrapper>
         <ContentWrapper isExpanded={isExpanded}>

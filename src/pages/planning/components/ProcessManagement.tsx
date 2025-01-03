@@ -19,9 +19,6 @@ const ProcessManagement = () => {
   const reactFlowInstance = useReactFlow();
 
   const processManagement = useSelector((state: any) => state.information.processManagement);
-  
-  console.log(processManagement);
-
   const handleNodeDragStart = (event: any, node: any) => {
     const originalNode = processManagement.nodes.find((n: any) => n.node_id.toString() === node.id);
     setDraggedNode(originalNode);
@@ -58,7 +55,8 @@ const ProcessManagement = () => {
         // Dispatch custom event with process data
         const dropEvent = new CustomEvent('processDrop', {
           detail: {
-            processId: node.id,
+            processId: originalNode?.id,
+            processnodeId: originalNode?.node_id,
             processName: originalNode?.process_name,
             x: e.clientX,
             y: e.clientY
@@ -101,7 +99,6 @@ const ProcessManagement = () => {
         .forEach((edge: any) => calculateLevel(edge.to_node_id, level + 1));
     };
 
-    console.log(processManagement);
     // Find root nodes (nodes with no incoming edges)
     const rootNodes = processManagement.nodes
       .filter((node: any) => !processManagement.edges.some((edge: any) => edge.to_node_id === node.node_id))

@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import * as PlanAPIUtil from './api';
 import ActionTypes, { Facility, Process } from './types';
 import { Dispatch } from 'redux';
@@ -24,6 +25,7 @@ export interface PlanState {
   filterQuery: any;
   planList: any[];
   gantt: any;
+  createGantt: any;
 }
 
 export const initialState: PlanState = {
@@ -40,14 +42,15 @@ export const initialState: PlanState = {
   processes: [],
   processLoading: false,
   processError: null,
-  isExpanded: false,
+  isExpanded: true,
   day: {
     startDay: null,
     endDay: null
   },
   filterQuery: {},
   planList: [],
-  gantt: []
+  gantt: [],
+  createGantt: {}
 };
 
 // Action Types
@@ -71,6 +74,7 @@ const SET_IS_EXPANDED = 'plan/SET_IS_EXPANDED';
 const SET_FILTER_QUERY = 'plan/SET_FILTER_QUERY';
 const RECEIVE_PLAN_LIST = 'plan/RECEIVE_PLAN_LIST';
 const RECEIVE_GANTT = 'plan/RECEIVE_GANTT';
+const RECEIVE_CREATE_GANTT = 'plan/RECEIVE_CREATE_GANTT';
 
 // Action Creators
 export const setPlanData = (planData: any[]) => ({
@@ -171,6 +175,11 @@ export const receivePlanList = (planList: any) => ({
 
 export const receiveGantt = (gantt: any) => ({
   type: RECEIVE_GANTT,
+  gantt
+});
+
+export const receiveCreateGantt = (gantt: any) => ({
+  type: RECEIVE_CREATE_GANTT,
   gantt
 });
 
@@ -343,17 +352,18 @@ export const getGantt = (start: string, end?: string) => async (dispatch: Dispat
 
 export const createGantt = (data: any) => async (dispatch: Dispatch) => {
   const response = await PlanAPIUtil.createGantt(data);
-  getGantt(response.data.start_date, response.data.end_date)(dispatch);
+  getGantt(dayjs(response.data.start_date).format('YYYYMMDD'))(dispatch);
+  dispatch(receiveCreateGantt(response.data));
 };
 
 export const updateGantt = (data: any) => async (dispatch: Dispatch) => {
   const response = await PlanAPIUtil.updateGantt(data);
-  getGantt(response.data.start_date, response.data.end_date)(dispatch);
+  getGantt(dayjs(response.data.start_date).format('YYYYMMDD'))(dispatch);
 };
 
 export const deleteGantt = (id: string) => async (dispatch: Dispatch) => {
   const response = await PlanAPIUtil.deleteGantt(id);
-  getGantt(response.data.start_date, response.data.end_date)(dispatch);
+  getGantt(dayjs(response.data.start_date).format('YYYYMMDD'))(dispatch);
 };
 
 // Reducer
@@ -432,10 +442,10 @@ const reducer = (state: PlanState = initialState, action: ActionTypes) => {
         ...newState,
         gantt: action.gantt
       };
-    case SET_SELECTED_PLAN_ID:
+    case RECEIVE_CREATE_GANTT:
       return {
         ...newState,
-        selectedPlanId: action.id
+        createGantt: action.gantt
       };
     default:
       return state;

@@ -53,13 +53,14 @@ const DateLabel = styled.p`
   white-space: nowrap;
 `;
 
-// const CustomDatePicker = styled(DatePicker)`
-//   background-color: white;
-//   border: 1px solid #ddd;
-//   padding: 0.25rem 0.5rem;
-//   border-radius: 0.25rem;
-//   width: 180px;
-// `;
+const DatePickerWrapper = styled.div`
+  .react-datepicker-wrapper {
+    z-index: 999;
+  }
+  .react-datepicker-popper {
+    z-index: 999;
+  }
+`;
 
 const SearchButton = styled.button`
   background-color: #1976d2;
@@ -131,7 +132,6 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
       ? dayjs(selectedDate).format('YYYYMMDD')
       : dayjs(selectedDate).format('YYYY/MM');
 
-    // await dispatch(getPlanList({ date: formattedDate, searchType }) as any);
     dispatch(setDayPlanBOM({ day: selectedDate }));
 
     if (searchType === 'daily') {
@@ -170,7 +170,6 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
 
   const handleExpandCollapse = () => {
     dispatch(setIsExpanded(!isExpanded));
-    // setIsExpanded(!isExpanded);
   };
 
   return (
@@ -200,14 +199,16 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
         </Tab>
       </TabContainer>
         <DateLabel>날짜</DateLabel>
-        <DatePicker
-          selected={selectedDate}
-          onChange={handleDateChange}
-          dateFormat={searchType === 'daily' ? "yyyy.MM.dd" : "yyyy.MM"}
-          showMonthYearPicker={searchType === 'monthly'}
-          placeholderText={searchType === 'daily' ? "Select date" : "Select month"}
-          highlightDates={dateAttributes[0]?.dates}
-        />
+        <DatePickerWrapper>
+          <DatePicker
+            selected={selectedDate}
+            onChange={handleDateChange}
+            dateFormat={searchType === 'daily' ? "yyyy.MM.dd" : "yyyy.MM"}
+            showMonthYearPicker={searchType === 'monthly'}
+            placeholderText={searchType === 'daily' ? "Select date" : "Select month"}
+            highlightDates={dateAttributes[0]?.dates}
+          />
+        </DatePickerWrapper>
 
         <SearchButton onClick={handleSearch}>
           검색

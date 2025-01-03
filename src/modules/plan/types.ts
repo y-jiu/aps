@@ -126,6 +126,11 @@ interface IReceiveGantt {
   readonly gantt: any
 }
 
+interface IReceiveCreateGantt {
+  readonly type: 'plan/RECEIVE_CREATE_GANTT'
+  readonly gantt: any
+}
+  
 type ActionTypes = 
 ISetPlanData 
 | ISetSelectedPlanId 
@@ -147,4 +152,5 @@ ISetPlanData
 | ISetFilterQuery
 | IReceivePlanList
 | IReceiveGantt
+| IReceiveCreateGantt
 export default ActionTypes
