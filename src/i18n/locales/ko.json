@@ -1,15 +1,16 @@
 {
   "sidebar": {
     "information": "기준 정보 관리",
-    "sales": "영업 관리",
-    "delivery": "출고 관리",
-    "planning": "계획 관리",
+    "sales": "수주 관리",
+    "processManagement": "공정 관리",
+    "delivery": "자재/재고 관리",
+    "planning": "생산 관리",
     "performance": "실적 관리",
     "monitoring": "모니터링 관리",
     "system": "시스템 관리"
   },
   "sales": {
-    "title": "영업 관리",
+    "title": "수주 관리",
     "upload": "업로드",
     "download": "다운로드",
     "add": "추가",

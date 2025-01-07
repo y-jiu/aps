@@ -123,7 +123,7 @@ const ProcessManagementModal = (
       return [];
     }
 
-    if (processManagement.nodes && processManagement.nodes.length === 0) {
+    if (processManagement?.nodes && processManagement?.nodes.length === 0) {
       return [];
     }
     const calculateLevel = (nodeId: number, level: number) => {
@@ -132,14 +132,14 @@ const ProcessManagementModal = (
       processed.add(nodeId);
       
       // Find all outgoing edges from this node
-      processManagement.edges
+      processManagement?.edges
         .filter((edge: any) => edge.from_node_id === nodeId)
         .forEach((edge: any) => calculateLevel(edge.to_node_id, level + 1));
     };
 
     // Find root nodes (nodes with no incoming edges)
-    const rootNodes = processManagement.nodes
-      .filter((node: any) => !processManagement.edges.some((edge: any) => edge.to_node_id === node.node_id))
+    const rootNodes = processManagement?.nodes
+      .filter((node: any) => !processManagement?.edges.some((edge: any) => edge.to_node_id === node.node_id))
       .map((node: any) => node.node_id);
 
     // Calculate levels starting from root nodes
@@ -164,6 +164,11 @@ const ProcessManagementModal = (
   };
   
   useEffect(() => {
+    if (!processManagement) return;
+    if (!processManagement?.nodes) return;
+    if (processManagement?.nodes && processManagement?.nodes.length === 0) return;
+    if (processManagement?.edges && processManagement?.edges.length === 0) return;
+    
     const nodes = calculateNodePositions();
     setNodes(nodes);
     const edges = processManagement.edges.map((edge: any) => ({

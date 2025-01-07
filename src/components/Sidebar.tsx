@@ -11,6 +11,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }>  = ({ children }) => {
   const [language, setLanguage] = useState('ko')
   const navigation = [
     { name: t('sidebar.information'), href: '/information' },
+    { name: t('sidebar.processManagement'), href: '/process-management' },
     { name: t('sidebar.sales'), href: '/sales' },
     { name: t('sidebar.delivery'), href: '/delivery' },
     { name: t('sidebar.planning'), href: '/planning' },

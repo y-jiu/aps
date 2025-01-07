@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import Product from "./components/Product";
 import Client from "./components/Client";
 import ProcessList from "./components/ProcessList";
-import ProcessManagement from "./components/ProcessManagement";
+// import ProcessManagement from "./components/ProcessManagement";
 import Equipment from "./components/Equipment";
 
 const Information = () => {
@@ -27,11 +27,11 @@ const Information = () => {
       path: '/information/process-list',
       component: ProcessList 
     },
-    { 
-      name: '공정 관리', 
-      path: '/information/process-management',
-      component: ProcessManagement 
-    },
+    // { 
+    //   name: '공정 관리', 
+    //   path: '/information/process-management',
+    //   component: ProcessManagement 
+    // },
     { 
       name: '설비 목록', 
       path: '/information/equipment',

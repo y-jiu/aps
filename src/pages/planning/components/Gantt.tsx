@@ -46,10 +46,36 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
       timelinePlugin
     ],
     schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
-    initialView: 'resourceTimelineDay',
+    initialView: 'day',
     headerToolbar: {
       left: 'title',
-      right: 'resourceTimelineDay,resourceTimelineWeek,resourceTimelineMonth'
+      right: 'day,week,month'
+    },
+    views: {
+      day: {
+        type: 'resourceTimeline',
+        duration: { days: 1 },
+        slotDuration: '01:00:00',
+        snapDuration: '00:05:00',
+      },
+      week: {
+        type: 'resourceTimeline',
+        duration: { days: 7 },
+        slotDuration: '24:00:00',
+        slotLabelFormat: [
+          { month: 'short', day: 'numeric', weekday: 'short' },
+          // { hour: '2-digit', hour12: false }
+        ]
+      },
+      month: {
+        type: 'resourceTimeline',
+        duration: { days: 30 },
+        slotDuration: '24:00:00',
+        slotLabelFormat: [
+          { month: 'short', day: 'numeric', weekday: 'short' },
+          // { hour: '2-digit', hour12: false }
+        ]
+      }
     },
     editable: true,
     droppable: true,

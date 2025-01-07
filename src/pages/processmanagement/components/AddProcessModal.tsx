@@ -63,7 +63,6 @@ const AddProcessModal = ({
         ...nodes.filter(n => n.node_id !== null).map(n => n.node_id!)
       );
 
-      console.log(maxExistingId);
       nodeId = maxExistingId + 1;
     }
 
@@ -74,8 +73,6 @@ const AddProcessModal = ({
         process_name: selectedProcess
       }
     ];
-
-    console.log(updatedNodes, nodeId);
 
     const existingEdges = editMode ? 
       edges.filter(edge => 

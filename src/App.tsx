@@ -13,6 +13,7 @@ import Information from './pages/information';
 import Delivery from './pages/delivery';
 import Performance from './pages/performance';
 import Login from './pages/login';
+import ProcessManagement from './pages/processmanagement';
 
 function App() {
   
@@ -27,6 +28,7 @@ function App() {
             <Route path="/information/*" element={<Information />} />
             <Route path="/sales" element={<Sales />} />
             <Route path="/delivery/*" element={<Delivery />} />
+            <Route path="/process-management" element={<ProcessManagement />} />
             <Route path="/planning" element={<Planning />} />
             <Route path="/performance/*" element={<Performance />} />
             <Route path="/monitoring/*" element={<Monitoring />} />

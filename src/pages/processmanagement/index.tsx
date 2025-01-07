@@ -3,10 +3,10 @@ import '@xyflow/react/dist/style.css';
 import styled from 'styled-components';
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { getCompanyList, createCompany, updateCompany, deleteCompany, getProductList, updateProduct, createProduct, deleteProduct, getProcessList, getProcessManagement, receiveProcessManagement } from '../../../modules/information';
+import { getCompanyList, createCompany, updateCompany, deleteCompany, getProductList, updateProduct, createProduct, deleteProduct, getProcessList, getProcessManagement, receiveProcessManagement } from '../../modules/information';
 import { ThunkDispatch } from 'redux-thunk';
 import { AnyAction } from 'redux';
-import ProcessManagementModal from './ProcessManagementModal';
+import ProcessManagementModal from './components/ProcessManagementModal';
 
 const ProcessManagement = () => {
   const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
