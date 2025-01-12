@@ -45,6 +45,11 @@ interface ISetSelectedPlanBomState {
   readonly state: string
 }
 
+interface IReceivePlanCalendar {
+  readonly type: 'plan/RECEIVE_PLAN_CALENDAR'
+  readonly planCalendar: any
+}
+
 interface ISetFacilities {
   readonly type: 'plan/SET_FACILITIES'
   readonly facilities: Facility[]
@@ -130,12 +135,18 @@ interface IReceiveCreateGantt {
   readonly type: 'plan/RECEIVE_CREATE_GANTT'
   readonly gantt: any
 }
+
+interface IReceiveGanttCalendar {
+  readonly type: 'plan/RECEIVE_GANTT_CALENDAR'
+  readonly ganttCalendar: any
+}
   
 type ActionTypes = 
 ISetPlanData 
 | ISetSelectedPlanId 
 | ISetSelectedPlanState 
 | ISetSelectedPlanBomState 
+| IReceivePlanCalendar
 | ISetFacilities 
 | IAddFacility 
 | IDeleteFacility 
@@ -153,4 +164,5 @@ ISetPlanData
 | IReceivePlanList
 | IReceiveGantt
 | IReceiveCreateGantt
+| IReceiveGanttCalendar
 export default ActionTypes

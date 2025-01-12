@@ -14,9 +14,10 @@ import { useGantt } from '../../../hooks/useGantt';
 import { getFacilityList } from '../../../modules/information';
 import { useDispatch, useSelector } from 'react-redux';
 import './styles.css';
+import DatePicker from 'react-datepicker';
 import { ThunkDispatch } from 'redux-thunk';
 import { AnyAction } from 'redux';
-import { createGantt, getGantt, deleteGantt, updateGantt } from '../../../modules/plan';
+import { createGantt, getGantt, deleteGantt, updateGantt, getGanttCalendar } from '../../../modules/plan';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -37,6 +38,9 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
   const gantt = useSelector((state: any) => state.plan.gantt);
   const createGanttData = useSelector((state: any) => state.plan.createGantt);
   const selectedPlanId = useSelector((state: any) => state.plan.selectedPlanId);
+  const ganttCalendar = useSelector((state: any) => state.plan.ganttCalendar);
+
+  const [dateAttributes, setDateAttributes] = useState<any>([]);
 
   const [calendarOptions, setCalendarOptions] = useState<any>({
     plugins: [
@@ -64,7 +68,6 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
         slotDuration: '24:00:00',
         slotLabelFormat: [
           { month: 'short', day: 'numeric', weekday: 'short' },
-          // { hour: '2-digit', hour12: false }
         ]
       },
       month: {
@@ -73,7 +76,6 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
         slotDuration: '24:00:00',
         slotLabelFormat: [
           { month: 'short', day: 'numeric', weekday: 'short' },
-          // { hour: '2-digit', hour12: false }
         ]
       }
     },
@@ -174,6 +176,7 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
   }, [gantt]);
 
   useEffect(() => {
+    dispatch(getGanttCalendar(String(startDay.getFullYear()), String(startDay.getMonth() + 1)));
     const handleDeleteEvent = (e: CustomEvent) => {
       const { eventId } = e.detail;
       handleEventDelete(eventId);
@@ -342,15 +345,61 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
     }
   };
 
+  useEffect(() => {
+    if (ganttCalendar) {
+      if (ganttCalendar?.length > 0) {
+        const dates = ganttCalendar.map((date: string) => {
+          const year = parseInt(date.substring(0, 4));
+          const month = parseInt(date.substring(5, 7)) -1; // Month is 0-based
+          const day = parseInt(date.substring(8, 10));
+          return new Date(year, month, day);
+        });
+      setDateAttributes([{
+        dot: true,
+          dates: dates
+        }]);
+      }
+    }
+    if (ganttCalendar?.length === 0) {
+      setDateAttributes([]);
+    }
+  }, [ganttCalendar]);
+
+  console.log("dateAttributes", dateAttributes);
+
+  const handleMonthChange = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    dispatch(getGanttCalendar(String(year), String(month)));
+    // console.log("date", date);
+  };
+
+  const handleDateChange = (date: Date | null) => {
+    if (date) {
+      setStartDay(date);
+    }
+  };
+
   return (
     <GanttWrapper>
       <HeaderContainer>
-        <DateLabel>시작날짜</DateLabel>
+        {/* <DateLabel>시작날짜</DateLabel>
         <DateInput
           type="date"
           value={startDay ? dayjs(startDay).format('YYYY-MM-DD') : ''}
           onChange={(e) => setStartDay(new Date(e.target.value))}
-        />
+        /> */}
+        <DateLabel>날짜</DateLabel>
+        <DatePickerWrapper>
+          <DatePicker
+            selected={startDay}
+            onChange={handleDateChange}
+            onMonthChange={handleMonthChange}
+            dateFormat="yyyy.MM.dd"
+            placeholderText="Select date"
+            highlightDates={dateAttributes[0]?.dates}
+          />
+        </DatePickerWrapper>
         <SearchButton onClick={handleDateSearch}>
           검색
         </SearchButton>
@@ -488,5 +537,36 @@ const MenuItem = styled.div`
   cursor: pointer;
   &:hover {
     background: #f5f5f5;
+  }
+`;
+
+const DatePickerWrapper = styled.div`
+  .react-datepicker-wrapper {
+    z-index: 999;
+  }
+  .react-datepicker-popper {
+    z-index: 999;
+  }
+
+  .react-datepicker__day--highlighted {
+    position: relative;
+    background-color: transparent;
+    color: black;
+    
+    &:hover {
+      background-color: #f0f0f0;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 3px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px; 
+      height: 4px;
+      background-color: #00CCC0;
+      border-radius: 50%;
+    }
   }
 `;

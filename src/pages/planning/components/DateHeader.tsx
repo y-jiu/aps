@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import dayjs from 'dayjs';
-import { getPlanByDate, getPlanByMonth, initializeDates, setDayPlanBOM, setFilterQuery, setIsExpanded, setPlanData } from '../../../modules/plan';
+import { getPlanByDate, getPlanByMonth, initializeDates, getPlanCalendar, setDayPlanBOM, setFilterQuery, setIsExpanded, setPlanData } from '../../../modules/plan';
 import { ThunkDispatch } from 'redux-thunk';
 import { AnyAction } from 'redux';
 import { IAppState } from '../../../types';
@@ -60,6 +60,30 @@ const DatePickerWrapper = styled.div`
   .react-datepicker-popper {
     z-index: 999;
   }
+
+  .react-datepicker__day--highlighted {
+    position: relative;
+    background-color: transparent;
+    color: black;
+    
+    &:hover {
+      background-color: #f0f0f0;
+    }
+
+    /* Add dot under the date */
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 4px;
+      background-color: #00CCC0;
+      border-radius: 50%;
+    }
+  }
+
 `;
 
 const SearchButton = styled.button`
@@ -110,16 +134,38 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
   // const [isExpanded, setIsExpanded] = useState(false);
   const isExpanded = useSelector((state: IAppState) => state.plan.isExpanded);
   const bomDay = useSelector((state: IAppState) => state.plan.day);
+  const planCalendar = useSelector((state: IAppState) => state.plan.planCalendar);
+  // console.log("dateAttributes", dateAttributes);
 
   useEffect(() => {
     initializeDate();
   }, []);
 
+  useEffect(() => {
+    if (planCalendar) {
+      if (planCalendar.length > 0) {
+        const dates = planCalendar.map((date: string) => {
+          const year = parseInt(date.substring(0, 4));
+          const month = parseInt(date.substring(5, 7)) -1; // Month is 0-based
+          const day = parseInt(date.substring(8, 10));
+          return new Date(year, month, day);
+        });
+        setDateAttributes([{
+          dot: true,
+          dates: dates
+        }]);
+      }
+      else {
+        setDateAttributes([]);
+      }
+    }
+  }, [planCalendar]);
+
   const initializeDate = () => {
     const today = new Date();
     setSelectedDate(today);
     dispatch(setDayPlanBOM({ day: today }));
-    monthlyCheckDot(today.getFullYear(), today.getMonth() + 1);
+    // monthlyCheckDot(today.getFullYear(), today.getMonth() + 1);
   };
 
   const handleSearch = async () => {
@@ -143,33 +189,36 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
     }
   };
 
-  const monthlyCheckDot = async (year: number, month: number) => {
-    const yearMonth = `${year}${String(month).padStart(2, '0')}`;
+  // const monthlyCheckDot = async (year: number, month: number) => {
+  //   const yearMonth = `${year}${String(month).padStart(2, '0')}`;
     
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}plan/calendar/${yearMonth}`
-      );
-      const data = await response.json();
+  //   try {
+  //     const response = await fetch(
+  //       `${process.env.REACT_APP_API_URL}plan/calendar/${yearMonth}`
+  //     );
+  //     const data = await response.json();
       
-      setDateAttributes([{
-        dot: true,
-        dates: data.date || []
-      }]);
-    } catch (error) {
-      console.error('Failed to fetch calendar data:', error);
-    }
-  };
+  //     setDateAttributes([{
+  //       dot: true,
+  //       dates: data.date || []
+  //     }]);
+  //   } catch (error) {
+  //     console.error('Failed to fetch calendar data:', error);
+  //   }
+  // };
 
   const handleDateChange = (date: Date | null) => {
     if (date) {
       setSelectedDate(date);
-      monthlyCheckDot(date.getFullYear(), date.getMonth() + 1);
     }
   };
 
   const handleExpandCollapse = () => {
     dispatch(setIsExpanded(!isExpanded));
+  };
+
+  const handleMonthChange = (date: Date) => {
+    dispatch(getPlanCalendar(date.getFullYear().toString(), (date.getMonth() + 1).toString()));
   };
 
   return (
@@ -203,6 +252,7 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
           <DatePicker
             selected={selectedDate}
             onChange={handleDateChange}
+            onMonthChange={handleMonthChange}
             dateFormat={searchType === 'daily' ? "yyyy.MM.dd" : "yyyy.MM"}
             showMonthYearPicker={searchType === 'monthly'}
             placeholderText={searchType === 'daily' ? "Select date" : "Select month"}

@@ -26,6 +26,8 @@ export interface PlanState {
   planList: any[];
   gantt: any;
   createGantt: any;
+  ganttCalendar: any;
+  planCalendar: any;
 }
 
 export const initialState: PlanState = {
@@ -50,7 +52,9 @@ export const initialState: PlanState = {
   filterQuery: {},
   planList: [],
   gantt: [],
-  createGantt: {}
+  createGantt: {},
+  ganttCalendar: [],
+  planCalendar: []
 };
 
 // Action Types
@@ -58,6 +62,7 @@ const SET_PLAN_DATA = 'plan/SET_PLAN_DATA';
 const SET_SELECTED_PLAN_ID = 'plan/SET_SELECTED_PLAN_ID';
 const SET_SELECTED_PLAN_STATE = 'plan/SET_SELECTED_PLAN_STATE';
 const SET_SELECTED_PLAN_BOM_STATE = 'plan/SET_SELECTED_PLAN_BOM_STATE';
+const RECEIVE_PLAN_CALENDAR = 'plan/RECEIVE_PLAN_CALENDAR';
 const SET_FACILITIES = 'plan/SET_FACILITIES';
 const ADD_FACILITY = 'plan/ADD_FACILITY';
 const DELETE_FACILITY = 'plan/DELETE_FACILITY';
@@ -75,6 +80,7 @@ const SET_FILTER_QUERY = 'plan/SET_FILTER_QUERY';
 const RECEIVE_PLAN_LIST = 'plan/RECEIVE_PLAN_LIST';
 const RECEIVE_GANTT = 'plan/RECEIVE_GANTT';
 const RECEIVE_CREATE_GANTT = 'plan/RECEIVE_CREATE_GANTT';
+const RECEIVE_GANTT_CALENDAR = 'plan/RECEIVE_GANTT_CALENDAR';
 
 // Action Creators
 export const setPlanData = (planData: any[]) => ({
@@ -95,6 +101,11 @@ export const setSelectedPlanState = (state: string) => ({
 export const setSelectedPlanBomState = (state: string) => ({
   type: SET_SELECTED_PLAN_BOM_STATE,
   state
+});
+
+export const receivePlanCalendar = (planCalendar: any) => ({
+  type: RECEIVE_PLAN_CALENDAR,
+  planCalendar
 });
 
 export const setFacilities = (facilities: Facility[]) => ({
@@ -181,6 +192,11 @@ export const receiveGantt = (gantt: any) => ({
 export const receiveCreateGantt = (gantt: any) => ({
   type: RECEIVE_CREATE_GANTT,
   gantt
+});
+
+export const receiveGanttCalendar = (ganttCalendar: any) => ({
+  type: RECEIVE_GANTT_CALENDAR,
+  ganttCalendar
 });
 
 // Thunks
@@ -345,10 +361,52 @@ export const getGantt = (start: string, end?: string) => async (dispatch: Dispat
   dispatch(receiveGantt(response.data));
 };
 
-// export const getGanttCalendar = (year: string, month: string) => async (dispatch: Dispatch) => {
-//   const response = await PlanAPIUtil.getGanttCalendar(year, month);
-//   dispatch(receiveGantt(response.data));
-// };
+export const getGanttCalendar = (year: string, month: string) => async (dispatch: Dispatch) => {
+  // const response = await PlanAPIUtil.getGanttCalendar(year, month);
+  const currentMonth = await PlanAPIUtil.getGanttCalendar(year, month);
+  
+  // Get previous month data
+  const prevDate = new Date(parseInt(year), parseInt(month)-2, 1);
+  const prevYear = prevDate.getFullYear().toString();
+  const prevMonth = (prevDate.getMonth() + 1).toString();
+  const prevMonthData = await PlanAPIUtil.getGanttCalendar(prevYear, prevMonth);
+
+  // Get next month data 
+  const nextDate = new Date(parseInt(year), parseInt(month), 1);
+  const nextYear = nextDate.getFullYear().toString(); 
+  const nextMonth = (nextDate.getMonth() + 1).toString();
+  const nextMonthData = await PlanAPIUtil.getGanttCalendar(nextYear, nextMonth);
+
+  // Combine all data
+  const combinedData = [
+      ...(prevMonthData.data?.date || []),
+      ...(currentMonth.data?.date || []),
+      ...(nextMonthData.data?.date || [])
+    ];
+  // dispatch(receiveGantt(response.data));
+  dispatch(receiveGanttCalendar(combinedData));
+};
+
+export const getPlanCalendar = (year: string, month: string) => async (dispatch: Dispatch) => {
+  const currentMonth = await PlanAPIUtil.getPlanCalendar(year, month);
+  const prevDate = new Date(parseInt(year), parseInt(month)-2, 1);
+  const prevYear = prevDate.getFullYear().toString();
+  const prevMonth = (prevDate.getMonth() + 1).toString();
+  const prevMonthData = await PlanAPIUtil.getPlanCalendar(prevYear, prevMonth);
+
+  const nextDate = new Date(parseInt(year), parseInt(month), 1);
+  const nextYear = nextDate.getFullYear().toString(); 
+  const nextMonth = (nextDate.getMonth() + 1).toString();
+  const nextMonthData = await PlanAPIUtil.getPlanCalendar(nextYear, nextMonth);
+
+  const combinedData = [
+    ...(prevMonthData.data?.date || []),
+    ...(currentMonth.data?.date || []),
+    ...(nextMonthData.data?.date || [])
+  ];
+
+  dispatch(receivePlanCalendar(combinedData));
+};
 
 export const createGantt = (data: any) => async (dispatch: Dispatch) => {
   const response = await PlanAPIUtil.createGantt(data);
@@ -446,6 +504,16 @@ const reducer = (state: PlanState = initialState, action: ActionTypes) => {
       return {
         ...newState,
         createGantt: action.gantt
+      };
+    case RECEIVE_GANTT_CALENDAR:
+      return {
+        ...newState,
+        ganttCalendar: action.ganttCalendar
+      };
+    case RECEIVE_PLAN_CALENDAR:
+      return {
+        ...newState,
+        planCalendar: action.planCalendar
       };
     default:
       return state;

@@ -37,8 +37,6 @@ export const updateProcessesOrder = (processes: Process[]) =>
 export const updateProcessData = (payload: { id: string; planId: string; [key: string]: any }) =>
   axios.put(`${process.env.REACT_APP_API_URL}/processes/${payload.id}`, payload);
 
-
-
 export const getPlanByDate = (date: string) => {
   return axiosJSON.get(`plan/date/${date}`)
 }
@@ -61,6 +59,10 @@ export const updatePlanState = (data: any) => {
 
 export const deletePlan = (id: string) => {
   return axiosJSON.delete(`plan/${id}`)
+}
+
+export const getPlanCalendar = (year: string, month: string) => {
+  return axiosJSON.get(`plan/calendar/${year}/${month}`)
 }
 
 export const getGantt = (start: string, end?: string) => {

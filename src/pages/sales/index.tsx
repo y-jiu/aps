@@ -12,7 +12,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from 'react-i18next';
 import FilterPopup from './components/filterPopup';
 import { FilterConfig } from './components/filterPopup';
-import { createPlan } from '../../modules/plan';
+import { createPlan, getPlanCalendar } from '../../modules/plan';
 import { AnyAction } from 'redux';
 import { ThunkDispatch } from 'redux-thunk';
 
@@ -111,6 +111,7 @@ const Sales = () => {
   });
   const [insertRow, setInsertRow] = React.useState(false);
   const sheets = useSelector((state: IAppState) => state.sales.sheets);
+  const planCalendar = useSelector((state: IAppState) => state.plan.planCalendar);
   // Add new state for sorting
   const [sortConfig, setSortConfig] = React.useState<{
     key: string | null;
@@ -120,9 +121,14 @@ const Sales = () => {
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
   const [activeFilters, setActiveFilters] = React.useState<FilterConfig[]>([]);
   const [originalSheets, setOriginalSheets] = React.useState<any[]>([]);
+  const [dateAttributes, setDateAttributes] = React.useState<any[]>([]);
   
   const dispatch = useDispatch<ThunkDispatch<IAppState, void, AnyAction>>();
  
+  React.useEffect(() => {
+    dispatch(getPlanCalendar(startDate.getFullYear().toString(), (startDate.getMonth() + 1).toString()));
+  }, []);
+
   React.useEffect(() => { (async() =>{
     if (sheets.length > 0) {
       setRows(sheets);
@@ -131,6 +137,27 @@ const Sales = () => {
       }
     }
   })(); }, [sheets]);
+  
+  React.useEffect(() => {
+    if (planCalendar) {
+      // setDateAttributes(planCalendar);
+      if (planCalendar.length > 0) {
+        const dates = planCalendar.map((date: string) => {
+          const year = parseInt(date.substring(0, 4));
+          const month = parseInt(date.substring(5, 7)) -1; // Month is 0-based
+          const day = parseInt(date.substring(8, 10));
+          return new Date(year, month, day);
+        });
+        setDateAttributes([{
+          dot: true,
+          dates: dates
+        }]);
+      }
+      else {
+        setDateAttributes([]);
+      }
+    }
+  }, [planCalendar]);
 
   // React.useEffect(() => {
   //   renderRow(rows);
@@ -336,6 +363,14 @@ const Sales = () => {
     dispatch(updateSheets(filteredSheets));
   };
 
+  const handleMonthChange = (date: Date) => {
+    const year = date.getFullYear().toString();
+    const month = (date.getMonth() + 1).toString();
+    dispatch(getPlanCalendar(year, month));
+  };
+
+  console.log("dateAttributes", dateAttributes);
+
   const isFirstRowNull = sheets.every(sheet => sheet[rowNames[0]] === null);
 
   return (
@@ -346,6 +381,8 @@ const Sales = () => {
         showIcon
         selected={startDate} 
         onChange={(date) => setStartDate(date ?? new Date())}
+        onMonthChange={handleMonthChange}
+        highlightDates={dateAttributes[0]?.dates}
         />
       </DatePickerContainer>
       <ButtonContainer>
@@ -613,6 +650,30 @@ const DatePickerContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+
+  /* Style for highlighted dates */
+  .react-datepicker__day--highlighted {
+    position: relative;
+    background-color: transparent;
+    color: black;
+    
+    &:hover {
+      background-color: #f0f0f0;
+    }
+
+    /* Add dot under the date */
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 4px;
+      background-color: #00CCC0;
+      border-radius: 50%;
+    }
+  }
 `;
 
 const DatePickerText = styled.div`

@@ -203,7 +203,6 @@ const PlanTable: React.FC<PlanTableProps> = ({ onFindEvent }) => {
     setSelectedRow(plan.id);
     dispatch(setSelectedPlanId(plan.id));
     dispatch(setSelectedPlanState(plan.state));
-    // dispatch(setSelectedPlanBomState(plan.bom_state));
     onFindEvent(plan);
     dispatch(getProcessManagement(plan.product_name));
   };
