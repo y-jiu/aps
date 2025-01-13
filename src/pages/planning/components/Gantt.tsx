@@ -39,8 +39,42 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
   const createGanttData = useSelector((state: any) => state.plan.createGantt);
   const selectedPlanId = useSelector((state: any) => state.plan.selectedPlanId);
   const ganttCalendar = useSelector((state: any) => state.plan.ganttCalendar);
+  const ganttDateToMove = useSelector((state: any) => state.plan.ganttDateToMove);
 
   const [dateAttributes, setDateAttributes] = useState<any>([]);
+
+  useEffect(() => {
+    if (gantt && ganttDateToMove && ganttDateToMove.length > 0) {
+      const events = gantt.map((event: any) => ({
+        id: event.id,
+        resourceId: event.facility_id,
+        title: event.process_name,
+        start: dayjs(event.start_date).format('YYYY-MM-DDTHH:mm:ss'),
+        end: dayjs(event.end_date).format('YYYY-MM-DDTHH:mm:ss'),
+        allDay: false,
+        backgroundColor: ganttDateToMove.some((moveEvent: any) => 
+          moveEvent.processnode_id === event.processnode_id
+        ) ? '#CDB4DB' : '#95B8D1',
+        borderColor: 'transparent',
+        extendedProps: {
+          processId: event.processnode_id,
+          facilityId: event.facility_id,
+          planId: event.plan_id
+        }
+      }));
+
+      setCalendarOptions((prevOptions: any) => ({
+        ...prevOptions,
+        events: events
+      }));
+
+      if (calendarRef.current && ganttDateToMove[0]?.start_date) {
+        const firstDate = dayjs(ganttDateToMove[0].start_date).toDate();
+        calendarRef.current.getApi().gotoDate(firstDate);
+        setStartDay(firstDate);
+      }
+    }
+  }, [ganttDateToMove]);
 
   const [calendarOptions, setCalendarOptions] = useState<any>({
     plugins: [
@@ -134,6 +168,8 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
         title: event.process_name,
         start: dayjs(event.start_date).format('YYYY-MM-DDTHH:mm:ss'),
         end: dayjs(event.end_date).format('YYYY-MM-DDTHH:mm:ss'),
+        backgroundColor: '#95B8D1',
+        borderColor: 'transparent',
         allDay: false,
         extendedProps: {
           processId: event.processnode_id,
@@ -145,32 +181,6 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
       setCalendarOptions((prevOptions: any) => ({
         ...prevOptions,
         events: events,
-        // eventContent: (arg: any) => {
-        //   const handleDelete = (e: MouseEvent) => {
-        //     e.stopPropagation(); // Prevent event click from triggering
-        //     handleEventDelete(arg.event.id);
-        //   };
-
-        //   return {
-        //     html: `
-        //       <div class="fc-event-main-frame" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-        //         <div class="fc-event-title-container">
-        //           <div class="fc-event-title fc-sticky">${arg.event.title}</div>
-        //         </div>
-        //         <button onclick="(function(e) { e.stopPropagation(); console.log('${arg.event.id}'); document.dispatchEvent(new CustomEvent('deleteGanttEvent', {detail: {eventId: '${arg.event.id}'}})); })(event)" 
-        //           class="event-delete-btn" 
-        //           style="
-        //             background: transparent;
-        //             border: none;
-        //             color: #ff4444;
-        //             cursor: pointer;
-        //             padding: 2px 5px;
-        //             margin-right: 2px;
-        //           ">×</button>
-        //       </div>
-        //     `
-        //   };
-        // }
       }));
     }
   }, [gantt]);
@@ -304,7 +314,6 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
       const relativeY = y - rect.top;
       const resourceIndex = Math.floor(relativeY / resourceHeight);
       const targetResource = resources[resourceIndex];
-      // console.log(targetResource);
 
       if (!targetResource) return;
 
@@ -365,13 +374,10 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
     }
   }, [ganttCalendar]);
 
-  console.log("dateAttributes", dateAttributes);
-
   const handleMonthChange = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     dispatch(getGanttCalendar(String(year), String(month)));
-    // console.log("date", date);
   };
 
   const handleDateChange = (date: Date | null) => {

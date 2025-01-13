@@ -140,6 +140,11 @@ interface IReceiveGanttCalendar {
   readonly type: 'plan/RECEIVE_GANTT_CALENDAR'
   readonly ganttCalendar: any
 }
+
+interface IReceiveGanttDateToMove {
+  readonly type: 'plan/RECEIVE_GANTT_DATE_TO_MOVE'
+  readonly ganttDateToMove: any
+}
   
 type ActionTypes = 
 ISetPlanData 
@@ -165,4 +170,5 @@ ISetPlanData
 | IReceiveGantt
 | IReceiveCreateGantt
 | IReceiveGanttCalendar
+| IReceiveGanttDateToMove
 export default ActionTypes

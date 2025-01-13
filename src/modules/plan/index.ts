@@ -28,6 +28,7 @@ export interface PlanState {
   createGantt: any;
   ganttCalendar: any;
   planCalendar: any;
+  ganttDateToMove: any;
 }
 
 export const initialState: PlanState = {
@@ -54,7 +55,8 @@ export const initialState: PlanState = {
   gantt: [],
   createGantt: {},
   ganttCalendar: [],
-  planCalendar: []
+  planCalendar: [],
+  ganttDateToMove: []
 };
 
 // Action Types
@@ -81,6 +83,7 @@ const RECEIVE_PLAN_LIST = 'plan/RECEIVE_PLAN_LIST';
 const RECEIVE_GANTT = 'plan/RECEIVE_GANTT';
 const RECEIVE_CREATE_GANTT = 'plan/RECEIVE_CREATE_GANTT';
 const RECEIVE_GANTT_CALENDAR = 'plan/RECEIVE_GANTT_CALENDAR';
+const RECEIVE_GANTT_DATE_TO_MOVE = 'plan/RECEIVE_GANTT_DATE_TO_MOVE';
 
 // Action Creators
 export const setPlanData = (planData: any[]) => ({
@@ -197,6 +200,11 @@ export const receiveCreateGantt = (gantt: any) => ({
 export const receiveGanttCalendar = (ganttCalendar: any) => ({
   type: RECEIVE_GANTT_CALENDAR,
   ganttCalendar
+});
+
+export const receiveGanttDateToMove = (ganttDateToMove: any) => ({
+  type: RECEIVE_GANTT_DATE_TO_MOVE,
+  ganttDateToMove
 });
 
 // Thunks
@@ -424,6 +432,11 @@ export const deleteGantt = (id: string) => async (dispatch: Dispatch) => {
   getGantt(dayjs(response.data.start_date).format('YYYYMMDD'))(dispatch);
 };
 
+export const getGanttDateToMove = (id: string) => async (dispatch: Dispatch) => {
+  const response = await PlanAPIUtil.getGanttDateToMove(id);
+  dispatch(receiveGanttDateToMove(response.data));
+};
+
 // Reducer
 const reducer = (state: PlanState = initialState, action: ActionTypes) => {
   Object.freeze(state);
@@ -514,6 +527,11 @@ const reducer = (state: PlanState = initialState, action: ActionTypes) => {
       return {
         ...newState,
         planCalendar: action.planCalendar
+      };
+    case RECEIVE_GANTT_DATE_TO_MOVE:
+      return {
+        ...newState,
+        ganttDateToMove: action.ganttDateToMove
       };
     default:
       return state;

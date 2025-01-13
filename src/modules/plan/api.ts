@@ -84,3 +84,7 @@ export const deleteGantt = (id: string) => {
 export const getGanttCalendar = (year: string, month: string) => {
   return axiosJSON.get(`gantt/calendar/${year}/${month}`)
 }
+
+export const getGanttDateToMove = (id: string) => {
+  return axiosJSON.get(`gantt/movedate/${id}`)
+}

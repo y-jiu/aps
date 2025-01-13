@@ -11,7 +11,8 @@ import {
   // getPlanList,
   planUpdateState,
   getPlanByDate,
-  getPlanByMonth
+  getPlanByMonth,
+  getGanttDateToMove
 } from '../../../modules/plan';
 import { IAppState } from '../../../types';
 import { getProcessManagement } from '../../../modules/information';
@@ -205,6 +206,7 @@ const PlanTable: React.FC<PlanTableProps> = ({ onFindEvent }) => {
     dispatch(setSelectedPlanState(plan.state));
     onFindEvent(plan);
     dispatch(getProcessManagement(plan.product_name));
+    dispatch(getGanttDateToMove(plan.id));
   };
 
   const handleStateUpdate = async (index: number) => {
