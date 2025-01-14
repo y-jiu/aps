@@ -26,6 +26,9 @@ interface GanttProps {
   onEventAchievementUpdated: () => void;
 }
 
+interface SortState {
+  direction: 'asc' | 'desc' | 'none';
+}
 
 const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
   const [startDay, setStartDay] = useState<Date>(new Date());
@@ -42,6 +45,8 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
   const ganttDateToMove = useSelector((state: any) => state.plan.ganttDateToMove);
 
   const [dateAttributes, setDateAttributes] = useState<any>([]);
+  const [sortState, setSortState] = useState<SortState>({ direction: 'none' });
+  const [facilitySearch, setFacilitySearch] = useState('');
 
   useEffect(() => {
     if (gantt && ganttDateToMove && ganttDateToMove.length > 0) {
@@ -124,33 +129,30 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
       { hour: 'numeric', minute: '2-digit', hour12: false } // lower level of text
     ],
     eventResizableFromStart: true,
-    resources: [
-      // { id: 'facility-1', title: '설비 1' },
-      // { id: 'facility-2', title: '설비 2' },
-      // { id: 'facility-3', title: '설비 3' },
-      // { id: 'facility-4', title: '설비 4' },
-    ],
+    resourceOrder: 'order',
+    resources: [],
     events: [],
   });
 
   const facilityList = useSelector((state: any) => state.information.facilityList);
+  
   useEffect(() => {
     dispatch(getFacilityList());
   }, []);
 
   useEffect(() => {
     if (facilityList) {
+      const filteredFacilities = getFilteredAndSortedFacilities(facilityList);
       setCalendarOptions((prevOptions: any) => ({
         ...prevOptions,
-        resources: facilityList
-          .sort((a: any, b: any) => a.facility_order - b.facility_order)
-          .map((facility: any) => ({ 
-            id: facility.id, 
-            title: facility.facility_name 
-          }))
+        resources: filteredFacilities.map((facility: any, index: number) => ({ 
+          id: facility.id, 
+          title: facility.facility_name,
+          order: index
+        }))
       }));
     }
-  }, [facilityList]);
+  }, [facilityList, sortState, facilitySearch]);
 
   useEffect(() => {
     const startDate = dayjs(startDay)
@@ -386,15 +388,48 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
     }
   };
 
+  const getFilteredAndSortedFacilities = (facilities: any[]) => {
+    if (!facilities) return [];
+    
+    let filtered = facilities.filter(facility => 
+      facility.facility_name.toLowerCase().includes(facilitySearch.toLowerCase())
+    );
+
+    if (sortState.direction !== 'none') {
+      filtered.sort((a, b) => {
+        const comparison = a.facility_name.localeCompare(b.facility_name);
+        return sortState.direction === 'asc' ? comparison : -comparison;
+      });
+    } else {
+      // Default sort by facility_order
+      filtered.sort((a, b) => a.facility_order - b.facility_order);
+    }
+
+    return filtered;
+  };
+
   return (
     <GanttWrapper>
       <HeaderContainer>
-        {/* <DateLabel>시작날짜</DateLabel>
-        <DateInput
-          type="date"
-          value={startDay ? dayjs(startDay).format('YYYY-MM-DD') : ''}
-          onChange={(e) => setStartDay(new Date(e.target.value))}
-        /> */}
+        <FacilityFilterContainer>
+          <SearchInput
+            type="text"
+            placeholder="설비 검색..."
+            value={facilitySearch}
+            onChange={(e) => setFacilitySearch(e.target.value)}
+          />
+          <SortButton
+            onClick={() => setSortState(prev => ({
+              direction: prev.direction === 'none' ? 'asc' : 
+                         prev.direction === 'asc' ? 'desc' : 'none'
+            }))}
+          >
+            정렬
+            {sortState.direction === 'none' && '↕️'}
+            {sortState.direction === 'asc' && '↑'}
+            {sortState.direction === 'desc' && '↓'}
+          </SortButton>
+        </FacilityFilterContainer>
         <DateLabel>날짜</DateLabel>
         <DatePickerWrapper>
           <DatePicker
@@ -478,8 +513,7 @@ const HeaderContainer = styled.div`
 
 const DateLabel = styled.p`
   font-size: 0.875rem;
-  margin-right: 0.25rem;
-  margin-bottom: 2px;
+  margin-right: 8px;
 `;
 
 const DateInput = styled.input`
@@ -574,5 +608,36 @@ const DatePickerWrapper = styled.div`
       background-color: #00CCC0;
       border-radius: 50%;
     }
+  }
+`;
+
+const FacilityFilterContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 25px;
+  background: #f5f5f5;
+  border-radius: 0.25rem;
+`;
+
+const SearchInput = styled.input`
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+`;
+
+const SortButton = styled.button`
+  background: transparent;
+  border: 1px solid #ddd;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
+  &:hover {
+    background: #e0e0e0;
   }
 `;
