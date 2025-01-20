@@ -88,3 +88,19 @@ export const getGanttCalendar = (year: string, month: string) => {
 export const getGanttDateToMove = (id: string) => {
   return axiosJSON.get(`gantt/movedate/${id}`)
 }
+
+export const createAchievement = (data: any) => {
+  return axiosJSON.post(`achievement`, data)
+}
+
+export const getAchievement = (id: string) => {
+  return axiosJSON.get(`achievement/${id}`)
+}
+
+export const updateAchievement = (data: any) => {
+  return axiosJSON.put(`achievement`, data)
+}
+
+export const deleteAchievement = (id: string) => {
+  return axiosJSON.delete(`achievement/${id}`)
+}

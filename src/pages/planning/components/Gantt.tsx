@@ -105,6 +105,7 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
         type: 'resourceTimeline',
         duration: { days: 7 },
         slotDuration: '24:00:00',
+        snapDuration: '24:00:00',
         slotLabelFormat: [
           { month: 'short', day: 'numeric', weekday: 'short' },
         ]
@@ -113,6 +114,7 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
         type: 'resourceTimeline',
         duration: { days: 30 },
         slotDuration: '24:00:00',
+        snapDuration: '24:00:00',
         slotLabelFormat: [
           { month: 'short', day: 'numeric', weekday: 'short' },
         ]

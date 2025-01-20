@@ -145,7 +145,12 @@ interface IReceiveGanttDateToMove {
   readonly type: 'plan/RECEIVE_GANTT_DATE_TO_MOVE'
   readonly ganttDateToMove: any
 }
-  
+
+interface IReceiveAchievement {
+  readonly type: 'plan/RECEIVE_ACHIEVEMENT'
+  readonly achievement: any
+}
+
 type ActionTypes = 
 ISetPlanData 
 | ISetSelectedPlanId 
@@ -171,4 +176,5 @@ ISetPlanData
 | IReceiveCreateGantt
 | IReceiveGanttCalendar
 | IReceiveGanttDateToMove
+| IReceiveAchievement
 export default ActionTypes

@@ -29,6 +29,7 @@ export interface PlanState {
   ganttCalendar: any;
   planCalendar: any;
   ganttDateToMove: any;
+  achievement: any;
 }
 
 export const initialState: PlanState = {
@@ -56,7 +57,8 @@ export const initialState: PlanState = {
   createGantt: {},
   ganttCalendar: [],
   planCalendar: [],
-  ganttDateToMove: []
+  ganttDateToMove: [],
+  achievement: []
 };
 
 // Action Types
@@ -84,6 +86,7 @@ const RECEIVE_GANTT = 'plan/RECEIVE_GANTT';
 const RECEIVE_CREATE_GANTT = 'plan/RECEIVE_CREATE_GANTT';
 const RECEIVE_GANTT_CALENDAR = 'plan/RECEIVE_GANTT_CALENDAR';
 const RECEIVE_GANTT_DATE_TO_MOVE = 'plan/RECEIVE_GANTT_DATE_TO_MOVE';
+const RECEIVE_ACHIEVEMENT = 'plan/RECEIVE_ACHIEVEMENT';
 
 // Action Creators
 export const setPlanData = (planData: any[]) => ({
@@ -205,6 +208,11 @@ export const receiveGanttCalendar = (ganttCalendar: any) => ({
 export const receiveGanttDateToMove = (ganttDateToMove: any) => ({
   type: RECEIVE_GANTT_DATE_TO_MOVE,
   ganttDateToMove
+});
+
+export const receiveAchievement = (achievement: any) => ({
+  type: RECEIVE_ACHIEVEMENT,
+  achievement
 });
 
 // Thunks
@@ -437,6 +445,27 @@ export const getGanttDateToMove = (id: string) => async (dispatch: Dispatch) => 
   dispatch(receiveGanttDateToMove(response.data));
 };
 
+export const createAchievement = (data: any) => async (dispatch: Dispatch) => {
+  const response = await PlanAPIUtil.createAchievement(data);
+  // dispatch(receiveAchievement(response.data));
+  getAchievement(response.data.gantt_id)(dispatch);
+};
+
+export const getAchievement = (id: string) => async (dispatch: Dispatch) => {
+  const response = await PlanAPIUtil.getAchievement(id);
+  dispatch(receiveAchievement(response.data));
+};
+
+export const updateAchievement = (data: any) => async (dispatch: Dispatch) => {
+  const response = await PlanAPIUtil.updateAchievement(data);
+  getAchievement(response.data.gantt_id)(dispatch);
+};
+
+export const deleteAchievement = (id: string) => async (dispatch: Dispatch) => {
+  const response = await PlanAPIUtil.deleteAchievement(id);
+  getAchievement(response.data.gantt_id)(dispatch);
+};
+
 // Reducer
 const reducer = (state: PlanState = initialState, action: ActionTypes) => {
   Object.freeze(state);
@@ -532,6 +561,11 @@ const reducer = (state: PlanState = initialState, action: ActionTypes) => {
       return {
         ...newState,
         ganttDateToMove: action.ganttDateToMove
+      };
+    case RECEIVE_ACHIEVEMENT:
+      return {
+        ...newState,
+        achievement: action.achievement
       };
     default:
       return state;

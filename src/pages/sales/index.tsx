@@ -12,7 +12,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from 'react-i18next';
 import FilterPopup from './components/filterPopup';
 import { FilterConfig } from './components/filterPopup';
-import { createPlan, getPlanCalendar } from '../../modules/plan';
+import { createPlan, getPlanByDate, getPlanCalendar } from '../../modules/plan';
 import { AnyAction } from 'redux';
 import { ThunkDispatch } from 'redux-thunk';
 
@@ -373,6 +373,17 @@ const Sales = () => {
 
   const isFirstRowNull = sheets.every(sheet => sheet[rowNames[0]] === null);
 
+  const handleSelectDate = (date: Date) => {
+    setStartDate(date ?? new Date());
+
+    // format date to YYYYMMDD
+
+    const formattedDate = date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\./g, '').replace(/\ /g, '');
+    console.log(formattedDate);
+
+    dispatch(getPlanByDate(formattedDate));
+  }
+  
   return (
     <Container>
       <DatePickerContainer>
@@ -380,7 +391,7 @@ const Sales = () => {
         <DatePicker 
         showIcon
         selected={startDate} 
-        onChange={(date) => setStartDate(date ?? new Date())}
+        onChange={(date) => handleSelectDate(date ?? new Date())}
         onMonthChange={handleMonthChange}
         highlightDates={dateAttributes[0]?.dates}
         />
@@ -651,7 +662,6 @@ const DatePickerContainer = styled.div`
   justify-content: center;
   align-items: center;
 
-  /* Style for highlighted dates */
   .react-datepicker__day--highlighted {
     position: relative;
     background-color: transparent;
@@ -668,8 +678,8 @@ const DatePickerContainer = styled.div`
       bottom: 2px;
       left: 50%;
       transform: translateX(-50%);
-      width: 4px;
-      height: 4px;
+      width: 0.5px;
+      height: 0.5px;
       background-color: #00CCC0;
       border-radius: 50%;
     }

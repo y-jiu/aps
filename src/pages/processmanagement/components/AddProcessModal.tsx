@@ -53,6 +53,11 @@ const AddProcessModal = ({
   const handleSubmit = () => {
     console.log('Selected Process:', selectedProcess);
     
+    if (selectedProcess === "") {
+      alert('공정을 선택해주세요.');
+      return;
+    }
+
     let nodeId = editMode && initialData ? initialData.node_id : null;
     
 
