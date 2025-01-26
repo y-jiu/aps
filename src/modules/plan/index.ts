@@ -358,7 +358,7 @@ export const initializeDates = () => (dispatch: Dispatch) => {
 
 export const createPlan = (data: any) => async (dispatch: Dispatch) => {
   const response = await PlanAPIUtil.createPlan(data);
-  console.log(response.data);
+  console.log(response);
   dispatch(receivePlanList(response.data));
 };
 
@@ -369,6 +369,18 @@ export const getPlanByDate = (date: string) => async (dispatch: Dispatch) => {
 
 export const getPlanByMonth = (year: string, month: string) => async (dispatch: Dispatch) => {
   const response = await PlanAPIUtil.getPlanByMonth(year, month);
+  dispatch(receivePlanList(response.data));
+};
+
+export const updatePlan = (data: any) => async (dispatch: Dispatch) => {
+  const response = await PlanAPIUtil.updatePlan(data);
+
+  console.log(response);
+  dispatch(receivePlanList(response.data));
+};
+
+export const deletePlan = (id: string) => async (dispatch: Dispatch) => {
+  const response = await PlanAPIUtil.deletePlan(id);
   dispatch(receivePlanList(response.data));
 };
 

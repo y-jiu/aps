@@ -29,7 +29,8 @@ const UploadFile: React.FC<UploadFileProps> = ({ isOpen, onClose }) => {
     const totalMinutes = Math.round(excelTime * 24 * 60);
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    const seconds = 0;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
   const onDrop = useCallback((acceptedFiles: any) => {
@@ -56,14 +57,23 @@ const UploadFile: React.FC<UploadFileProps> = ({ isOpen, onClose }) => {
           return {
             // plan_date: row['작성 일자/주차'],
             company_name: row['업체명'],
-            name: row['품명'],
+            product_name: row['품명'],
             lot: row['L/N'],
-            material_name: row['소재 품번'],
-            material_amount: row['소재 수량'],
-            product_name: row['가공 품번'],
-            plan_amount: row['가공 수량'],
-            deadline_date: excelDateToJSDate(row['출하일자']).toLocaleDateString(),
-            deadline_time: excelTimeToString(row['출하시간']),
+            material_name: row['소재품번'],
+            material_amount: row['소재수량'],
+            // product_name: row['가공 품번'],
+            plan_amount: row['계획수량'],
+            deadline_date: row['출하일자'],
+            deadline_time: row['출하시간'],
+            // deadline_date: excelDateToJSDate(row['출하일자']).toLocaleDateString('ko-KR', { 
+            //   year: 'numeric', 
+            //   month: '2-digit', 
+            //   day: '2-digit' 
+            // }).split('.')
+            //   .filter(part => part.trim())
+            //   .map(part => part.trim())
+            //   .join('-'),
+            // deadline_time: excelTimeToString(row['출하시간']),
             note: row['비고']
           };
         });
