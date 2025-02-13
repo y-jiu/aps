@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { IAppState } from '../../../types';
 import { AnyAction } from 'redux';
 import { ThunkDispatch } from 'redux-thunk';
+import { getAchievement, createAchievement, updateAchievement, deleteAchievement } from '../../../modules/plan';
 
 const Modal = styled.div`
   position: fixed;
@@ -138,7 +139,7 @@ const EditableRow = memo(({
   <tr>
     <EditableCell>
       <input
-        type="date"
+        type="datetime-local"
         value={formData.workdate}
         onChange={(e) => onFormChange('workdate', e.target.value)}
       />
@@ -146,15 +147,11 @@ const EditableRow = memo(({
     <EditableCell>
       <input
         value={formData.achievement}
+        type="number"
         onChange={(e) => onFormChange('achievement', e.target.value)}
       />
     </EditableCell>
-    <EditableCell>
-      <input
-        value={formData.note}
-        onChange={(e) => onFormChange('note', e.target.value)}
-      />
-    </EditableCell>
+
     <EditableCell>
       <select
         value={formData.worker}
@@ -162,11 +159,17 @@ const EditableRow = memo(({
       >
         <option value="">작업자 선택</option>
         {workerList.map((worker: any) => (
-          <option key={worker.id} value={worker.name}>
+          <option key={worker.id} value={worker.id}>
             {worker.name}
           </option>
         ))}
       </select>
+    </EditableCell>
+    <EditableCell>
+      <input
+        value={formData.note}
+        onChange={(e) => onFormChange('note', e.target.value)}
+      />
     </EditableCell>
     <td>
       <ActionButton className="edit" onClick={onSave}>저장</ActionButton>
@@ -177,42 +180,44 @@ const EditableRow = memo(({
 
 const Achievement: React.FC<AchievementProps> = ({ event, onClose, onUpdate }) => {
   // const { role } = useAuth();
-  const { 
-    // achievements,
-    deleteAchievement,
-    // createAchievement,
-    updateAchievement,
-  } = useAchievement(event.id);
+  // const { 
+  //   // achievements,
+  //   deleteAchievement,
+  //   // createAchievement,
+  //   updateAchievement,
+  // } = useAchievement(event.id);
 
-  const achievements = [{
-    id: 1,
-    workdate: '2025-01-01',
-    achievement: '100',
-    note: 'test',
-    worker: 'test',
-  }]
+  // const achievements = [{
+  //   id: 1,
+  //   workdate: '2025-01-01',
+  //   achievement: '100',
+  //   note: 'test',
+  //   worker: 'test',
+  // }]
   
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newRow, setNewRow] = useState(false);
   const [workerList, setWorkerList] = useState([]);
 
   const userList = useSelector((state: IAppState) => state.user.userList);
-
+  const achievements = useSelector((state: IAppState) => state.plan.achievement);
+  console.log(achievements);
   const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
   useEffect(() => {
     dispatch(GetUserList());
+    dispatch(getAchievement(event.id));
   }, []);
 
   useEffect(() => {
     if (userList) {
-      const workerList = userList.filter((user: any) => user.role === 'Worker');
-      setWorkerList(workerList);
+      // const workerList = userList.filter((user: any) => user.role === 'Worker');
+      setWorkerList(userList);
     }
   }, [userList]);
   
   // 새로운 행 추가를 위한 상태
   const [newRowData, setNewRowData] = useState({
-    workdate: dayjs().format('YYYY-MM-DD'),
+    workdate: dayjs().format('YYYY-MM-DDTHH:mm'),
     achievement: '',
     note: '',
     worker: '',
@@ -229,7 +234,7 @@ const Achievement: React.FC<AchievementProps> = ({ event, onClose, onUpdate }) =
   const handleEdit = (achievement: any) => {
     setEditingId(achievement.id);
     setEditRowData({
-      workdate: achievement.workdate,
+      workdate: dayjs(achievement.workdate).format('YYYY-MM-DDTHH:mm'),
       achievement: achievement.achievement,
       note: achievement.note,
       worker: achievement.worker,
@@ -242,14 +247,40 @@ const Achievement: React.FC<AchievementProps> = ({ event, onClose, onUpdate }) =
       //   eventId: event.id,
       //   ...newRowData,
       // });
+      // dispatch(createAchievement({
+      //   eventId: event.id,
+      //   ...newRowData,
+      // }));
+      // console.log(newRowData);
+
+
+      const data = {
+        gantt_id: event.id,
+        workdate: new Date(newRowData.workdate),
+        accomplishment: parseInt(newRowData.achievement),
+        note: newRowData.note,
+        user_id: parseInt(newRowData.worker),
+      }
+      // console.log(data);
+      dispatch(createAchievement(data));
     } else if (editingId) {
       // await updateAchievement(editingId, editRowData);
+      // console.log(editRowData);
+      const data = {
+        id: editingId,
+        workdate: new Date(editRowData.workdate),
+        accomplishment: parseInt(editRowData.achievement),
+        note: editRowData.note,
+        user_id: parseInt(editRowData.worker),
+      }
+      // console.log(data);
+      dispatch(updateAchievement(data));
     }
     
     setEditingId(null);
     setNewRow(false);
     setNewRowData({
-      workdate: dayjs().format('YYYY-MM-DD'),
+      workdate: dayjs().format('YYYY-MM-DDTHH:mm'),
       achievement: '',
       note: '',
       worker: '',
@@ -267,7 +298,7 @@ const Achievement: React.FC<AchievementProps> = ({ event, onClose, onUpdate }) =
     setNewRow(true);
     setEditingId(null);
     setNewRowData({
-      workdate: dayjs().format('YYYY-MM-DD'),
+      workdate: dayjs().format('YYYY-MM-DDTHH:mm'),
       achievement: '',
       note: '',
       worker: '',
@@ -314,7 +345,7 @@ const Achievement: React.FC<AchievementProps> = ({ event, onClose, onUpdate }) =
               onCancel={() => {
                 setNewRow(false);
                 setNewRowData({
-                  workdate: dayjs().format('YYYY-MM-DD'),
+                  workdate: dayjs().format('YYYY-MM-DDTHH:mm'),
                   achievement: '',
                   note: '',
                   worker: '',
@@ -343,13 +374,17 @@ const Achievement: React.FC<AchievementProps> = ({ event, onClose, onUpdate }) =
               />
             ) : (
               <tr key={achievement.id}>
-                <td>{achievement.workdate}</td>
-                <td>{achievement.achievement}</td>
+                <td>{dayjs(achievement.workdate).format('YYYY-MM-DD HH:mm')}</td>
+                <td>{achievement.accomplishment}</td>
+                <td>{userList.find((user: any) => user.id === achievement.user_id)?.name}</td>
                 <td>{achievement.note}</td>
-                <td>{achievement.worker}</td>
                 <td>
                   <ActionButton className="edit" onClick={() => handleEdit(achievement)}>수정</ActionButton>
-                  <ActionButton className="delete" onClick={() => deleteAchievement(achievement.id)}>삭제</ActionButton>
+                  <ActionButton className="delete" onClick={() => {
+                    if(window.confirm('실적을 삭제하시겠습니까?')){
+                      dispatch(deleteAchievement(achievement.id));
+                    }
+                  }}>삭제</ActionButton>
                 </td>
               </tr>
             )

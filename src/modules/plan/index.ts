@@ -465,6 +465,7 @@ export const createAchievement = (data: any) => async (dispatch: Dispatch) => {
 
 export const getAchievement = (id: string) => async (dispatch: Dispatch) => {
   const response = await PlanAPIUtil.getAchievement(id);
+  console.log(id);
   dispatch(receiveAchievement(response.data));
 };
 

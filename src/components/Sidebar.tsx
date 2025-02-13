@@ -9,6 +9,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }>  = ({ children }) => {
   const location = useLocation()
 
   const [language, setLanguage] = useState('ko')
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const navigation = [
     { name: t('sidebar.information'), href: '/information' },
     { name: t('sidebar.processManagement'), href: '/process-management' },
@@ -32,19 +33,30 @@ const Sidebar: React.FC<{ children: React.ReactNode }>  = ({ children }) => {
 
   return (
     <SidebarContainer>
-      <SidebarNav>
+      <SidebarNav $isCollapsed={isCollapsed}>
+        <ToggleButton onClick={() => setIsCollapsed(!isCollapsed)}>
+          {isCollapsed ? '→' : '←'}
+        </ToggleButton>
         {navigation.map((item) => (
           <SidebarNavItem key={item.name}>
-            <SidebarNavLink to={item.href} className={location.pathname.startsWith(item.href) ? 'active' : ''}>{item.name}</SidebarNavLink>
+            <SidebarNavLink 
+              to={item.href} 
+              className={location.pathname.startsWith(item.href) ? 'active' : ''}
+              $isCollapsed={isCollapsed}
+            >
+              {!isCollapsed && item.name}
+            </SidebarNavLink>
           </SidebarNavItem>
         ))}
-        <SidebarNavItem>
-          <LangSelect onChange={handleLanguageChange} value={language}>
-            {Object.entries(lang).map(([key, value]: [string, string]) => (
-              <option key={key} value={key}>{value}</option>
-            ))}
-          </LangSelect>
-        </SidebarNavItem>
+        {!isCollapsed && (
+          <SidebarNavItem>
+            <LangSelect onChange={handleLanguageChange} value={language}>
+              {Object.entries(lang).map(([key, value]: [string, string]) => (
+                <option key={key} value={key}>{value}</option>
+              ))}
+            </LangSelect>
+          </SidebarNavItem>
+        )}
       </SidebarNav>
       <ChildrenContainer>
       {children}
@@ -61,15 +73,17 @@ const SidebarContainer = styled.div`
   width: 100%;
 `
 
-const SidebarNav = styled.ul`
+const SidebarNav = styled.ul<{ $isCollapsed: boolean }>`
   display: flex;
   flex-direction: column;
   background-color: #2c3e50;
-  width: 200px;
+  width: ${props => props.$isCollapsed ? '20px' : '200px'};
   margin: 0;
   padding: 20px 0;
   gap: 8px;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  transition: width 0.3s ease;
+  position: relative;
 `
 
 const SidebarNavItem = styled.li`
@@ -77,7 +91,7 @@ const SidebarNavItem = styled.li`
   padding: 0 20px;
 `
 
-const SidebarNavLink = styled(Link)`
+const SidebarNavLink = styled(Link)<{ $isCollapsed: boolean }>`
   display: block;
   text-decoration: none;
   color: #ecf0f1;
@@ -86,6 +100,7 @@ const SidebarNavLink = styled(Link)`
   padding: 12px 16px;
   border-radius: 6px;
   transition: all 0.2s ease;
+  text-align: ${props => props.$isCollapsed ? 'center' : 'left'};
 
   &:hover {
     background-color: rgba(255, 255, 255, 0.1);
@@ -120,6 +135,28 @@ const LangSelect = styled.select`
   option {
     background-color: #2c3e50;
     color: #fff;
+  }
+`
+
+const ToggleButton = styled.button`
+  position: absolute;
+  right: -12px;
+  top: 20px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #2c3e50;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+
+  &:hover {
+    background-color: #34495e;
   }
 `
   
