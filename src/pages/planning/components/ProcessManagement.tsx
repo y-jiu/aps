@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useSelector } from 'react-redux';
 import CustomNode from './CustomNode';
+import { getPlanProcess } from '../../../modules/plan/api';
 
 const ProcessManagement = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -12,11 +13,14 @@ const ProcessManagement = () => {
   const [edges, setEdges] = useState<any>([]);
   const [draggedNode, setDraggedNode] = useState<any>(null);
   const [lockedViewState, setLockedViewState] = useState<Viewport | null>(null);
+  const [processedNodes, setProcessedNodes] = useState<Array<any>>([]);
   const reactFlowInstance = useReactFlow()
 
   const nodeClassName = (node: any) => node.type
 
   const processManagement = useSelector((state: any) => state.information.processManagement);
+  const selectedPlanId = useSelector((state: any) => state.plan.selectedPlanId);
+  const gantt = useSelector((state: any) => state.plan.gantt);
 
   const handleNodeDragStart = (event: any, node: any) => {
     const originalNode = processManagement.nodes.find(
@@ -119,7 +123,7 @@ const ProcessManagement = () => {
     // Calculate positions
     return processManagement.nodes.map((node: any) => ({
       id: node.node_id.toString(),
-      data: { label: `[${node.node_id}] ${node.process_name}` },
+      data: { label: `[${node.node_id}] ${node.process_name}`, processed: processedNodes.includes(node.id), },
       position: {
         x: levels[node.node_id] * HORIZONTAL_SPACING,
         y: nodesPerLevel[levels[node.node_id]].indexOf(node.node_id) * VERTICAL_SPACING
@@ -145,7 +149,19 @@ const ProcessManagement = () => {
       }));
       setEdges(edges);
 
-  }, [processManagement]);
+  }, [processManagement, processedNodes]);
+
+  useEffect(() => {
+    if (!selectedPlanId) return;
+
+    const getData = async () => {
+      const response = await getPlanProcess(selectedPlanId)
+
+      setProcessedNodes(response.data.map((item: any) => item.processnode_id ))
+    }
+
+    getData()
+  }, [selectedPlanId, gantt]);
 
   const handleNodeClick = (event: any, node: any) => {
     const originalNode = processManagement.nodes.find((n: any) => n.node_id.toString() === node.id);

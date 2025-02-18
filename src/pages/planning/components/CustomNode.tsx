@@ -4,32 +4,32 @@ import styled from "styled-components";
 
 interface BaseNodeProps extends React.HTMLAttributes<HTMLDivElement> {
   selected?: boolean;
+  processed?: boolean;
 }
 
-const StyledBaseNode = styled.div<{ $selected?: boolean }>`
+const StyledBaseNode = styled.div<{ $selected?: boolean, $processed?: boolean }>`
   position: relative;
   padding: 8px 14px;
-  font-size: 12px;
+  font-size: 11px;
   border-radius: 5px;
-  border: 1px solid #ccc;
+  border: 1.5px solid ${props => props.$processed ? '#008000' : '#ff0000'};
   background: white;
 
   &:focus {
     outline: none;
-    border-color: #aaa;
   }
 
   &:hover {
-    box-shadow: 0 0 0 1px currentColor;
   }
 `;
 
 const BaseNode = React.forwardRef<HTMLDivElement, BaseNodeProps>(
-  ({ selected, ...props }, ref) => {
+  ({ selected, processed, ...props }, ref) => {
     return (
       <StyledBaseNode
         ref={ref}
         $selected={selected}
+        $processed={processed}
         tabIndex={0}
         {...props}
       />
@@ -37,9 +37,9 @@ const BaseNode = React.forwardRef<HTMLDivElement, BaseNodeProps>(
   }
 );
 
-export default function CustomNode({ selected, data }: NodeProps<Node<{ label: string }>>) {
+export default function CustomNode({ selected, data }: NodeProps<Node<{ label: string, processed: boolean }>>) {
   return (
-    <BaseNode selected={selected} draggable>
+    <BaseNode selected={selected} processed={data.processed} draggable>
       <>
         {data.label}
         <Handle type="source" position={Position.Right} />

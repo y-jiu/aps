@@ -196,10 +196,6 @@ const PlanTable: React.FC<PlanTableProps> = ({ onFindEvent }) => {
   // const planData = mockPlanData
   const day = useSelector((state: IAppState) => state.plan.day_planBOM);
 
-  useEffect(() => {
-    console.log(planData)
-  }, [planData])
-
   const handleRowClick = async (plan: PlanData) => {
     setSelectedRow(plan.id);
     dispatch(setSelectedPlanId(plan.id));

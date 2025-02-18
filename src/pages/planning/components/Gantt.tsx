@@ -239,8 +239,7 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
       facility_id: info.event.extendedProps.facilityId
     }
     dispatch(updateGantt(data));
-
-      onEventAchievementUpdated();
+    onEventAchievementUpdated();
     } catch (error) {
       console.error('Failed to update event:', error);
       info.revert();
