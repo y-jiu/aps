@@ -1,38 +1,33 @@
-import { Handle, Position } from '@xyflow/react';
-import styled from 'styled-components';
-import '@xyflow/react/dist/style.css';
-import { useSelector } from 'react-redux';
+import { Handle, NodeToolbar, Position } from "@xyflow/react";
+import styled from "styled-components";
+import "@xyflow/react/dist/style.css";
+import { useSelector } from "react-redux";
 
 const DeleteButton = styled.button`
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
+  padding: 10px 15px;
+  border-radius: 5px;
   background-color: #ff4d4f;
   color: white;
   border: none;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  padding: 0;
-  line-height: 1;
-  
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
   &:hover {
     background-color: #ff7875;
   }
 `;
 
-const NodeWrapper = styled.div`
-  padding: 10px;
-  border-radius: 5px;
-  background: white;
-  border: 1px solid #ddd;
-  min-width: 150px;
+const NodeWrapper = styled.div<{ $selected?: boolean}>`
   position: relative;
+  padding: 8px 14px;
+  font-size: 11px;
+  border-radius: 0.125rem;
+  border-left: 2.5px solid #000000;
+  background: white;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  ${props => props.$selected && 'border: 1.5px solid #ff4d4f;' }
 `;
 
 const NodeContent = styled.div`
@@ -47,16 +42,11 @@ const StyledSelect = styled.select`
   padding: 6px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  
+
   &:focus {
     outline: none;
     border-color: #aaa;
   }
-`;
-
-const LabelWrapper = styled.div`
-  display: flex;
-  align-items: center;
 `;
 
 const NodeId = styled.div`
@@ -64,11 +54,13 @@ const NodeId = styled.div`
   height: 25px;
 `;
 
-const Node = ({ data, id }: any) => {
-  const processList = useSelector((state: any) => state.information.processList);
+const Node = ({ data, id, selected }: any) => {
+  const processList = useSelector(
+    (state: any) => state.information.processList
+  );
 
   const onDeleteClick = (event: React.MouseEvent) => {
-    event.stopPropagation();  // 이벤트 버블링 방지
+    event.stopPropagation();
     if (data.onDelete) {
       data.onDelete(id);
     }
@@ -81,20 +73,24 @@ const Node = ({ data, id }: any) => {
   };
 
   return (
-    <NodeWrapper>
-      <DeleteButton onClick={onDeleteClick} className="nodrag">
-        ×
-      </DeleteButton>
-      <Handle 
-        type="source" 
+    <NodeWrapper $selected={selected}>
+      <NodeToolbar
+        isVisible={selected}
+        position={Position.Top}
+      >
+        <DeleteButton onClick={onDeleteClick} className="nodrag">
+          공정 삭제하기
+        </DeleteButton>
+      </NodeToolbar>
+      <Handle
+        type="source"
         position={Position.Left}
-        style={{ background: '#555' }}
+        style={{ background: "#000" }}
         id="left-handle"
       />
-      
       <NodeContent>
         <NodeId>{data?.label}</NodeId>
-        <StyledSelect 
+        <StyledSelect
           value={data?.value || ""}
           className="nodrag"
           onChange={handleSelectChange}
@@ -107,11 +103,10 @@ const Node = ({ data, id }: any) => {
           ))}
         </StyledSelect>
       </NodeContent>
-
-      <Handle 
-        type="source" 
+      <Handle
+        type="source"
         position={Position.Right}
-        style={{ background: '#555' }}
+        style={{ background: "#000" }}
         id="right-handle"
       />
     </NodeWrapper>
@@ -119,4 +114,3 @@ const Node = ({ data, id }: any) => {
 };
 
 export default Node;
-

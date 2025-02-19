@@ -1,4 +1,4 @@
-import { ReactFlow, MiniMap, MarkerType, useReactFlow, Viewport, ReactFlowInstance } from '@xyflow/react';
+import { ReactFlow, MiniMap, MarkerType, useReactFlow, Viewport, ReactFlowInstance, Controls, Background } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
@@ -142,6 +142,7 @@ const ProcessManagement = () => {
       id: `${edge.from_node_id}-${edge.to_node_id}`,
       source: edge.from_node_id.toString(),
       target: edge.to_node_id.toString(),
+      animated: true,
       type: 'smoothstep',
       markerEnd: {
         type: MarkerType.ArrowClosed,
@@ -229,10 +230,12 @@ const ProcessManagement = () => {
         zoomOnDoubleClick={false}
         fitView
         style={{
-          overscrollBehavior: 'none'
+          overscrollBehavior: 'none',
+          backgroundColor: "#F7F9FB"
         }}
       >
         <MiniMap zoomable pannable nodeClassName={nodeClassName} />
+        <Background  />
       </ReactFlow>
     </Container>
   );
