@@ -61,6 +61,10 @@ export const deletePlan = (id: string) => {
   return axiosJSON.delete(`plan/${id}`)
 }
 
+export const getPlanProcess = (id: string) => {
+  return axiosJSON.get(`planprocess/${id}`)
+}
+
 export const getPlanCalendar = (year: string, month: string) => {
   return axiosJSON.get(`plan/calendar/${year}/${month}`)
 }

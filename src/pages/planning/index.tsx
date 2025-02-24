@@ -2,7 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 import DateHeader from './components/DateHeader';
 import PlanTable from './components/PlanTable';
-import BOM from './components/BOM';
 import Gantt from './components/Gantt';
 import { useSelector } from 'react-redux';
 import { IAppState } from '../../types';
