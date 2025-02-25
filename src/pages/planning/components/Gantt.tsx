@@ -8,9 +8,7 @@ import timelinePlugin from '@fullcalendar/timeline';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-// import { useAuth } from '../../../hooks/useAuth';
 import Achievement from './Achievement';
-import { useGantt } from '../../../hooks/useGantt';
 import { getFacilityList } from '../../../modules/information';
 import { useDispatch, useSelector } from 'react-redux';
 import './styles.css';
@@ -36,10 +34,8 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const calendarRef = useRef<FullCalendar>(null);
   const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
-  // const { getGanttData, updateGanttEvent, createGanttEvent } = useGantt();
 
   const gantt = useSelector((state: any) => state.plan.gantt);
-  const createGanttData = useSelector((state: any) => state.plan.createGantt);
   const selectedPlanId = useSelector((state: any) => state.plan.selectedPlanId);
   const ganttCalendar = useSelector((state: any) => state.plan.ganttCalendar);
   const ganttDateToMove = useSelector((state: any) => state.plan.ganttDateToMove);
@@ -127,8 +123,8 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
     slotDuration: '01:00:00',
     snapDuration: '00:05:00',
     slotLabelFormat: [
-      { month: 'long', year: 'numeric', day: 'numeric', weekday: 'short' }, // top level of text
-      { hour: 'numeric', minute: '2-digit', hour12: false } // lower level of text
+      { month: 'long', year: 'numeric', day: 'numeric', weekday: 'short' },
+      { hour: 'numeric', minute: '2-digit', hour12: false }
     ],
     eventResizableFromStart: true,
     resourceOrder: 'order',
@@ -265,14 +261,6 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
     }
 
     try {
-      const startDate = dayjs(info.event.start)
-        .tz('Asia/Seoul')
-        .format('YYYY-MM-DDTHH:mm:ss');
-      const endDate = dayjs(info.event.start)
-        .add(1, 'day')
-        .tz('Asia/Seoul')
-        .format('YYYY-MM-DDTHH:mm:ss');
-
       onEventAchievementUpdated();
     } catch (error) {
       console.error('Failed to create event:', error);
@@ -354,6 +342,7 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
   const handleDateSearch = () => {
     if (startDay && calendarRef.current) {
       calendarRef.current.getApi().gotoDate(startDay);
+      setStartDay(calendarRef.current.getApi().getDate())
     }
   };
 
@@ -515,13 +504,6 @@ const HeaderContainer = styled.div`
 const DateLabel = styled.p`
   font-size: 0.875rem;
   margin-right: 8px;
-`;
-
-const DateInput = styled.input`
-  background: white;
-  border: 1px solid #ddd;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
 `;
 
 const SearchButton = styled.button`
