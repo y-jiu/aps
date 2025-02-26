@@ -150,15 +150,8 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
         }))
       }));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facilityList, sortState, facilitySearch]);
-
-  useEffect(() => {
-    const startDate = dayjs(startDay)
-      .format('YYYYMMDD');
-
-    dispatch(getGantt(startDate));
-
-  }, []);
 
   useEffect(() => {
     if (gantt) {
@@ -342,7 +335,10 @@ const Gantt: React.FC<GanttProps> = ({ onEventAchievementUpdated }) => {
   const handleDateSearch = () => {
     if (startDay && calendarRef.current) {
       calendarRef.current.getApi().gotoDate(startDay);
-      setStartDay(calendarRef.current.getApi().getDate())
+      setStartDay(calendarRef.current.getApi().getDate());
+
+      dispatch(getGantt(dayjs(calendarRef.current.getApi().getDate())
+      .format('YYYYMMDD')));
     }
   };
 
