@@ -131,11 +131,8 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [dateAttributes, setDateAttributes] = useState<any[]>([]);
   const [searchType, setSearchType] = useState<'daily' | 'monthly'>('daily');
-  // const [isExpanded, setIsExpanded] = useState(false);
   const isExpanded = useSelector((state: IAppState) => state.plan.isExpanded);
-  const bomDay = useSelector((state: IAppState) => state.plan.day);
   const planCalendar = useSelector((state: IAppState) => state.plan.planCalendar);
-  // console.log("dateAttributes", dateAttributes);
 
   useEffect(() => {
     initializeDate();
@@ -165,7 +162,6 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
     const today = new Date();
     setSelectedDate(today);
     dispatch(setDayPlanBOM({ day: today }));
-    // monthlyCheckDot(today.getFullYear(), today.getMonth() + 1);
   };
 
   const handleSearch = async () => {
@@ -188,24 +184,6 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
       dispatch(getPlanByMonth(year, month));
     }
   };
-
-  // const monthlyCheckDot = async (year: number, month: number) => {
-  //   const yearMonth = `${year}${String(month).padStart(2, '0')}`;
-    
-  //   try {
-  //     const response = await fetch(
-  //       `${process.env.REACT_APP_API_URL}plan/calendar/${yearMonth}`
-  //     );
-  //     const data = await response.json();
-      
-  //     setDateAttributes([{
-  //       dot: true,
-  //       dates: data.date || []
-  //     }]);
-  //   } catch (error) {
-  //     console.error('Failed to fetch calendar data:', error);
-  //   }
-  // };
 
   const handleDateChange = (date: Date | null) => {
     if (date) {

@@ -1,9 +1,7 @@
 import {
   addEdge,
   ReactFlow,
-  applyNodeChanges,
   applyEdgeChanges,
-  Controls,
   Background,
   ConnectionMode,
   MiniMap,
@@ -12,7 +10,6 @@ import {
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useState } from "react";
 import styled from "styled-components";
-import AddProcessModal from "./AddProcessModal";
 import {
   createProcessManagement,
   updateProcessManagement,
@@ -23,11 +20,9 @@ import { ThunkDispatch } from "redux-thunk";
 import { AnyAction } from "redux";
 import Node from "./Node";
 const ProcessManagementModal = ({
-  isOpen,
   onClose,
   product,
 }: {
-  isOpen: boolean;
   onClose: () => void;
   product: any;
 }) => {
@@ -177,6 +172,7 @@ const ProcessManagementModal = ({
     });
 
     setEdges(edges);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [processManagement, handleDeleteNode, handleNodeValueChange]);
 
   useEffect(() => {
@@ -202,28 +198,7 @@ const ProcessManagementModal = ({
     setNodes([...nodes, node]);
   };
 
-  const handleNodeClick = (event: any, node: any) => {
-    // Find the original node data to get the process name
-    const originalNode = processManagement.nodes.find(
-      (n: any) => n.node_id.toString() === node.id
-    );
-
-    // Find previous and next nodes from edges
-    const prevNodes = processManagement.edges
-      .filter((edge: any) => edge.to_node_id.toString() === node.id)
-      .map((edge: any) => edge.from_node_id);
-
-    const nextNodes = processManagement.edges
-      .filter((edge: any) => edge.from_node_id.toString() === node.id)
-      .map((edge: any) => edge.to_node_id);
-
-    const formattedNode = {
-      node_id: parseInt(node.id),
-      process_name: originalNode?.process_name || "",
-      prev_node_id: prevNodes[0], // Taking first prev node if exists
-      next_node_id: nextNodes[0], // Taking first next node if exists
-    };
-  };
+  const handleNodeClick = (event: any, node: any) => {};
 
   const handleDeleteAllProcesses = () => {
     if (window.confirm("모든 공정을 삭제하시겠습니까?")) {
@@ -291,6 +266,7 @@ const ProcessManagementModal = ({
 
       setEdges((eds: any) => addEdge(newEdge, eds));
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [nodes]
   );
 

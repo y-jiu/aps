@@ -36,10 +36,6 @@ const FlexContainer = styled.div`
   justify-content: center;
 `;
 
-const BOMWrapper = styled.div`
-  margin-left: 0.5rem;
-`;
-
 const Planning: React.FC = () => {
   const findEventHandler = (event: any) => {
     // Implement event handling logic
@@ -64,9 +60,6 @@ const Planning: React.FC = () => {
         {isExpanded && 
           <FlexContainer>
             <PlanTable onFindEvent={findEventHandler} />
-            {/* <BOMWrapper>
-              <BOM />
-            </BOMWrapper> */}
           </FlexContainer>
         }
         </ContentWrapper>

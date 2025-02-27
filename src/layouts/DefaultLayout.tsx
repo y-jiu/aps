@@ -25,4 +25,5 @@ export default DefaultLayout
 const Container = styled.div`
   display: flex;
   width: 100%;
+  overflow-y: hidden;
 `

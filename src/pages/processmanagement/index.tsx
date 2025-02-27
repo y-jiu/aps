@@ -1,9 +1,8 @@
-import { ReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import styled from 'styled-components';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { getCompanyList, createCompany, updateCompany, deleteCompany, getProductList, updateProduct, createProduct, deleteProduct, getProcessList, getProcessManagement, receiveProcessManagement } from '../../modules/information';
+import { getProductList, getProcessList, getProcessManagement } from '../../modules/information';
 import { ThunkDispatch } from 'redux-thunk';
 import { AnyAction } from 'redux';
 import ProcessManagementModal from './components/ProcessManagementModal';
@@ -15,21 +14,12 @@ const ProcessManagement = () => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
   const productList = useSelector((state: any) => state.information.productList);
-  const selectedPlanId = useSelector((state: any) => state.plan.selectedPlanId);
 
   useEffect(() => {
     dispatch(getProductList());
     dispatch(getProcessList());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleDeleteProduct = async (productId: string) => {
-    if (!window.confirm('정말로 삭제하시겠습니까?')) return;
-    try {
-      await dispatch(deleteProduct(Number(productId)));
-    } catch (error) {
-      console.error('Failed to delete product:', error);
-    }
-  };
 
   const handleOpenModal = (product: any) => {
     setSelectedProduct(product);
@@ -53,7 +43,6 @@ const ProcessManagement = () => {
                 onClick={() => setIsTableVisible(!isTableVisible)}
               >
                 제품 목록
-                {/* Add icon based on visibility state */}
               </TableHeader>
             </tr>
           </thead>
@@ -86,7 +75,6 @@ const ProcessManagement = () => {
 
       {modalIsOpen && (
         <ProcessManagementModal 
-          isOpen={modalIsOpen}
           onClose={handleCloseModal}
           product={selectedProduct}
         />
