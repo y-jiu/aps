@@ -1,20 +1,28 @@
-import { ReactFlow, MiniMap, MarkerType, useReactFlow, Viewport, ReactFlowInstance, Controls, Background } from '@xyflow/react';
+import { ReactFlow, MiniMap, MarkerType, useReactFlow, Viewport, ReactFlowInstance, Background, ReactFlowProvider } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import CustomNode from './CustomNode';
 import { getPlanProcess } from '../../../modules/plan/api';
+import { ThunkDispatch } from 'redux-thunk';
+import { AnyAction } from 'redux';
+import { getProcessManagement } from '../../../modules/information';
+import ProcessManagementModal from '../../processmanagement/components/ProcessManagementModal';
 
 const ProcessManagement = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<any>(null);
+  const [processModalIsOpen, setProcessModalIsOpen] = useState(false);
   const [nodes, setNodes] = useState<any>([]);
   const [edges, setEdges] = useState<any>([]);
   const [draggedNode, setDraggedNode] = useState<any>(null);
   const [lockedViewState, setLockedViewState] = useState<Viewport | null>(null);
   const [processedNodes, setProcessedNodes] = useState<Array<any>>([]);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const reactFlowInstance = useReactFlow()
+
+  const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
 
   const nodeClassName = (node: any) => node.type
 
@@ -150,6 +158,7 @@ const ProcessManagement = () => {
       }));
       setEdges(edges);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [processManagement, processedNodes]);
 
   useEffect(() => {
@@ -187,7 +196,6 @@ const ProcessManagement = () => {
   };
 
   const onInit = useCallback((instance: ReactFlowInstance) => {
-    instance.fitView();
     setTimeout(() => {
       const currentViewport = instance.getViewport();
       setLockedViewState(currentViewport);
@@ -208,35 +216,72 @@ const ProcessManagement = () => {
   }, [lockedViewState]);
 
 
+  const handleOpenProcessModal = (product: any) => {
+    setSelectedProduct(product);
+    setProcessModalIsOpen(true);
+    dispatch(getProcessManagement(product.product_name));
+  };
+
+  const handleCloseModal = () => {
+    setProcessModalIsOpen(false);
+  };
+
+
   return (  
     <Container>
-      <ReactFlow 
-        nodes={nodes}
-        nodeTypes={{
-            customNode: CustomNode,
-        }}
-        edges={edges}
-        onInit={onInit}
-        onMove={onMove}
-        onNodeClick={handleNodeClick}
-        onNodeDragStart={handleNodeDragStart}
-        onNodeDrag={handleNodeDrag}
-        onNodeDragStop={handleNodeDragEnd}
-        draggable={false}
-        panOnDrag={false}
-        panOnScroll={false}
-        zoomOnScroll={false}
-        zoomOnPinch={false} 
-        zoomOnDoubleClick={false}
-        fitView
-        style={{
-          overscrollBehavior: 'none',
-          backgroundColor: "#F7F9FB"
-        }}
-      >
-        <MiniMap zoomable pannable nodeClassName={nodeClassName} />
-        <Background  />
-      </ReactFlow>
+      {!processModalIsOpen && (
+        <ReactFlowProvider>
+          <ReactFlow 
+            id='main'
+            nodes={nodes}
+            nodeTypes={{
+                customNode: CustomNode,
+            }}
+            edges={edges}
+            onInit={onInit}
+            onMove={onMove}
+            onNodeClick={handleNodeClick}
+            onNodeDragStart={handleNodeDragStart}
+            onNodeDrag={handleNodeDrag}
+            onNodeDragStop={handleNodeDragEnd}
+            draggable={false}
+            panOnDrag={false}
+            panOnScroll={false}
+            zoomOnScroll={false}
+            zoomOnPinch={false} 
+            zoomOnDoubleClick={false}
+            fitView
+            style={{
+              overscrollBehavior: 'none',
+              backgroundColor: "#F7F9FB"
+            }}
+          >
+            <MiniMap zoomable pannable nodeClassName={nodeClassName} />
+            <Background  />
+          </ReactFlow>
+          <div style={{
+            position: 'absolute',
+            bottom: '0px',
+            fontSize: '11px',
+            fontWeight: 700,
+            color: 'white',
+            padding: '8px 15px',
+            backgroundColor: '#000',
+            borderRadius: '5px',
+            cursor: 'pointer'
+          }} onClick={() => handleOpenProcessModal({...processManagement})}>
+            수정하기
+          </div>
+        </ReactFlowProvider>
+      )}
+
+      {processModalIsOpen && (
+        <ProcessManagementModal
+          onClose={handleCloseModal}
+          product={{product_name: processManagement.product_name}}
+        />
+      )}
+
     </Container>
   );
 };
@@ -245,5 +290,6 @@ export default ProcessManagement;
 
 const Container = styled.div`
   width: 100%;
-  height: 300px;
+  height: 320px;
+  position: relative;
 `;

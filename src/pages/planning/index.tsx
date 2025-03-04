@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import styled from 'styled-components';
 import DateHeader from './components/DateHeader';
 import PlanTable from './components/PlanTable';
 import Gantt from './components/Gantt';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { IAppState } from '../../types';
 import ProcessManagement from './components/ProcessManagement';
 import { ReactFlowProvider } from '@xyflow/react';
+import { getProcessList, getProductList } from '../../modules/information';
+import { ThunkDispatch } from 'redux-thunk';
+import { AnyAction } from 'redux';
 
 
 const Container = styled.div`
@@ -36,11 +39,16 @@ const FlexContainer = styled.div`
   justify-content: center;
 `;
 
-const BOMWrapper = styled.div`
-  margin-left: 0.5rem;
-`;
-
 const Planning: React.FC = () => {
+  const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
+
+  useEffect(() => {
+    dispatch(getProductList());
+    dispatch(getProcessList());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
   const findEventHandler = (event: any) => {
     // Implement event handling logic
   };
@@ -64,9 +72,6 @@ const Planning: React.FC = () => {
         {isExpanded && 
           <FlexContainer>
             <PlanTable onFindEvent={findEventHandler} />
-            {/* <BOMWrapper>
-              <BOM />
-            </BOMWrapper> */}
           </FlexContainer>
         }
         </ContentWrapper>
