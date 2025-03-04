@@ -6,6 +6,7 @@ import {
   ConnectionMode,
   MiniMap,
   MarkerType,
+  ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useState } from "react";
@@ -289,29 +290,32 @@ const ProcessManagementModal = ({
         </HeaderButtonWrapper>
       </HeaderWrapper>
       <div style={{ flex: 1, position: 'relative' }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodeClick={handleNodeClick}
-          onEdgeClick={onEdgeClick}
-          nodeTypes={nodeTypes}
-          onNodesChange={handleNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          panOnDrag={true}
-          connectOnClick={true}
-          snapToGrid={true}
-          snapGrid={[15, 15]}
-          connectionMode={ConnectionMode.Loose}
-          style={{ backgroundColor: "#F7F9FB" }}
-          fitView
-        >
-          <MiniMap zoomable pannable nodeClassName={nodeClassName} />
-          <Background />
-        </ReactFlow>
-        <div style={{ position: "fixed", bottom: '5%', left: '3%' }}>
-          <AddButton onClick={handleAddProcess}>+</AddButton>
-        </div>
+        <ReactFlowProvider>  
+          <ReactFlow
+            id='modal'
+            nodes={nodes}
+            edges={edges}
+            onNodeClick={handleNodeClick}
+            onEdgeClick={onEdgeClick}
+            nodeTypes={nodeTypes}
+            onNodesChange={handleNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            panOnDrag={true}
+            connectOnClick={true}
+            snapToGrid={true}
+            snapGrid={[15, 15]}
+            connectionMode={ConnectionMode.Loose}
+            style={{ backgroundColor: "#F7F9FB" }}
+            fitView
+          >
+            <MiniMap zoomable pannable nodeClassName={nodeClassName} />
+            <Background />
+          </ReactFlow>
+          <div style={{ position: "fixed", bottom: '5%', left: '3%' }}>
+            <AddButton onClick={handleAddProcess}>+</AddButton>
+          </div>
+        </ReactFlowProvider>
       </div>
     </ModalWrapper>
   );

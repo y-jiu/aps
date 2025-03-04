@@ -1,4 +1,4 @@
-import { ReactFlow, MiniMap, MarkerType, useReactFlow, Viewport, ReactFlowInstance, Controls, Background } from '@xyflow/react';
+import { ReactFlow, MiniMap, MarkerType, useReactFlow, Viewport, ReactFlowInstance, Background, ReactFlowProvider } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
@@ -29,8 +29,6 @@ const ProcessManagement = () => {
   const processManagement = useSelector((state: any) => state.information.processManagement);
   const selectedPlanId = useSelector((state: any) => state.plan.selectedPlanId);
   const gantt = useSelector((state: any) => state.plan.gantt);
-
-  console.log(processManagement)
 
   const handleNodeDragStart = (event: any, node: any) => {
     const originalNode = processManagement.nodes.find(
@@ -160,6 +158,7 @@ const ProcessManagement = () => {
       }));
       setEdges(edges);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [processManagement, processedNodes]);
 
   useEffect(() => {
@@ -197,7 +196,6 @@ const ProcessManagement = () => {
   };
 
   const onInit = useCallback((instance: ReactFlowInstance) => {
-    instance.fitView();
     setTimeout(() => {
       const currentViewport = instance.getViewport();
       setLockedViewState(currentViewport);
@@ -232,49 +230,50 @@ const ProcessManagement = () => {
   return (  
     <Container>
       {!processModalIsOpen && (
-      <>
-        <ReactFlow 
-          nodes={nodes}
-          nodeTypes={{
-              customNode: CustomNode,
-          }}
-          edges={edges}
-          onInit={onInit}
-          onMove={onMove}
-          onNodeClick={handleNodeClick}
-          onNodeDragStart={handleNodeDragStart}
-          onNodeDrag={handleNodeDrag}
-          onNodeDragStop={handleNodeDragEnd}
-          draggable={false}
-          panOnDrag={false}
-          panOnScroll={false}
-          zoomOnScroll={false}
-          zoomOnPinch={false} 
-          zoomOnDoubleClick={false}
-          fitView
-          style={{
-            overscrollBehavior: 'none',
-            backgroundColor: "#F7F9FB"
-          }}
-        >
-          <MiniMap zoomable pannable nodeClassName={nodeClassName} />
-          <Background  />
-        </ReactFlow>
-        <div style={{
-          position: 'absolute',
-          bottom: '0px',
-          fontSize: '11px',
-          fontWeight: 700,
-          color: 'white',
-          padding: '8px 15px',
-          backgroundColor: '#000',
-          borderRadius: '5px',
-          cursor: 'pointer'
-        }} onClick={() => handleOpenProcessModal({...processManagement})}>
-          수정하기
-        </div>
-      </>
-    )}
+        <ReactFlowProvider>
+          <ReactFlow 
+            id='main'
+            nodes={nodes}
+            nodeTypes={{
+                customNode: CustomNode,
+            }}
+            edges={edges}
+            onInit={onInit}
+            onMove={onMove}
+            onNodeClick={handleNodeClick}
+            onNodeDragStart={handleNodeDragStart}
+            onNodeDrag={handleNodeDrag}
+            onNodeDragStop={handleNodeDragEnd}
+            draggable={false}
+            panOnDrag={false}
+            panOnScroll={false}
+            zoomOnScroll={false}
+            zoomOnPinch={false} 
+            zoomOnDoubleClick={false}
+            fitView
+            style={{
+              overscrollBehavior: 'none',
+              backgroundColor: "#F7F9FB"
+            }}
+          >
+            <MiniMap zoomable pannable nodeClassName={nodeClassName} />
+            <Background  />
+          </ReactFlow>
+          <div style={{
+            position: 'absolute',
+            bottom: '0px',
+            fontSize: '11px',
+            fontWeight: 700,
+            color: 'white',
+            padding: '8px 15px',
+            backgroundColor: '#000',
+            borderRadius: '5px',
+            cursor: 'pointer'
+          }} onClick={() => handleOpenProcessModal({...processManagement})}>
+            수정하기
+          </div>
+        </ReactFlowProvider>
+      )}
 
       {processModalIsOpen && (
         <ProcessManagementModal
@@ -282,6 +281,7 @@ const ProcessManagement = () => {
           product={{product_name: processManagement.product_name}}
         />
       )}
+
     </Container>
   );
 };
