@@ -1,5 +1,5 @@
-import axios from 'axios';
 import { Process } from './types';
+import axios from 'axios';
 import { axiosJSON } from '../../utils/axios';
 export const getPlanList = (dates: { start: string; end: string }) => 
   axios.get(`${process.env.REACT_APP_API_URL}/plan/list/${dates.start}/${dates.end}`);
@@ -107,4 +107,8 @@ export const updateAchievement = (data: any) => {
 
 export const deleteAchievement = (id: string) => {
   return axiosJSON.delete(`achievement/${id}`)
+}
+
+export const getAchievementByDate = (start_date: string, end_date: string) => {
+  return axiosJSON.get(`achievement/${start_date}/${end_date}`)
 }

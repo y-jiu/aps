@@ -151,6 +151,11 @@ interface IReceiveAchievement {
   readonly achievement: any
 }
 
+interface IReceiveAchievementByDate {
+  readonly type: 'plan/RECEIVE_ACHIEVEMENT_BY_DATE'
+  readonly achievementByDate: any
+}
+
 type ActionTypes = 
 ISetPlanData 
 | ISetSelectedPlanId 
@@ -177,4 +182,6 @@ ISetPlanData
 | IReceiveGanttCalendar
 | IReceiveGanttDateToMove
 | IReceiveAchievement
+| IReceiveAchievementByDate
+
 export default ActionTypes

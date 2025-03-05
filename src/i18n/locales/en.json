@@ -46,7 +46,8 @@
     "save": "Save",
     "production": "Production",
     "quality": "Quality",
-    "productionHistory": "Production History"
+    "productionHistory": "Production History",
+    "note": "Note"
   },
   "system": {
     "title": "System Management",

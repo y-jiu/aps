@@ -1,7 +1,9 @@
-import dayjs from 'dayjs';
 import * as PlanAPIUtil from './api';
+
 import ActionTypes, { Facility, Process } from './types';
+
 import { Dispatch } from 'redux';
+import dayjs from 'dayjs';
 
 export interface PlanState {
   planDatas: any[];
@@ -30,6 +32,7 @@ export interface PlanState {
   planCalendar: any;
   ganttDateToMove: any;
   achievement: any;
+  achievementByDate: any;
 }
 
 export const initialState: PlanState = {
@@ -58,7 +61,8 @@ export const initialState: PlanState = {
   ganttCalendar: [],
   planCalendar: [],
   ganttDateToMove: [],
-  achievement: []
+  achievement: [],
+  achievementByDate: []
 };
 
 // Action Types
@@ -87,6 +91,7 @@ const RECEIVE_CREATE_GANTT = 'plan/RECEIVE_CREATE_GANTT';
 const RECEIVE_GANTT_CALENDAR = 'plan/RECEIVE_GANTT_CALENDAR';
 const RECEIVE_GANTT_DATE_TO_MOVE = 'plan/RECEIVE_GANTT_DATE_TO_MOVE';
 const RECEIVE_ACHIEVEMENT = 'plan/RECEIVE_ACHIEVEMENT';
+const RECEIVE_ACHIEVEMENT_BY_DATE = 'plan/RECEIVE_ACHIEVEMENT_BY_DATE';
 
 // Action Creators
 export const setPlanData = (planData: any[]) => ({
@@ -213,6 +218,11 @@ export const receiveGanttDateToMove = (ganttDateToMove: any) => ({
 export const receiveAchievement = (achievement: any) => ({
   type: RECEIVE_ACHIEVEMENT,
   achievement
+});
+
+export const receiveAchievementByDate = (achievementByDate: any) => ({
+  type: RECEIVE_ACHIEVEMENT_BY_DATE,
+  achievementByDate
 });
 
 // Thunks
@@ -479,6 +489,11 @@ export const deleteAchievement = (id: string) => async (dispatch: Dispatch) => {
   getAchievement(response.data.gantt_id)(dispatch);
 };
 
+export const getAchievementByDate = (start_date: string, end_date: string) => async (dispatch: Dispatch) => {
+  const response = await PlanAPIUtil.getAchievementByDate(start_date, end_date);
+  dispatch(receiveAchievementByDate(response.data));
+};
+
 // Reducer
 const reducer = (state: PlanState = initialState, action: ActionTypes) => {
   Object.freeze(state);
@@ -579,6 +594,11 @@ const reducer = (state: PlanState = initialState, action: ActionTypes) => {
       return {
         ...newState,
         achievement: action.achievement
+      };
+    case RECEIVE_ACHIEVEMENT_BY_DATE:
+      return {
+        ...newState,
+        achievementByDate: action.achievementByDate
       };
     default:
       return state;
