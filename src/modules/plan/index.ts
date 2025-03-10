@@ -33,6 +33,7 @@ export interface PlanState {
   ganttDateToMove: any;
   achievement: any;
   achievementByDate: any;
+  achievementCalendar: any;
 }
 
 export const initialState: PlanState = {
@@ -62,7 +63,8 @@ export const initialState: PlanState = {
   planCalendar: [],
   ganttDateToMove: [],
   achievement: [],
-  achievementByDate: []
+  achievementByDate: [],
+  achievementCalendar: []
 };
 
 // Action Types
@@ -92,7 +94,7 @@ const RECEIVE_GANTT_CALENDAR = 'plan/RECEIVE_GANTT_CALENDAR';
 const RECEIVE_GANTT_DATE_TO_MOVE = 'plan/RECEIVE_GANTT_DATE_TO_MOVE';
 const RECEIVE_ACHIEVEMENT = 'plan/RECEIVE_ACHIEVEMENT';
 const RECEIVE_ACHIEVEMENT_BY_DATE = 'plan/RECEIVE_ACHIEVEMENT_BY_DATE';
-
+const RECEIVE_ACHIEVEMENT_CALENDAR = 'plan/RECEIVE_ACHIEVEMENT_CALENDAR';
 // Action Creators
 export const setPlanData = (planData: any[]) => ({
   type: SET_PLAN_DATA,
@@ -223,6 +225,11 @@ export const receiveAchievement = (achievement: any) => ({
 export const receiveAchievementByDate = (achievementByDate: any) => ({
   type: RECEIVE_ACHIEVEMENT_BY_DATE,
   achievementByDate
+});
+
+export const receiveAchievementCalendar = (achievementCalendar: any) => ({
+  type: RECEIVE_ACHIEVEMENT_CALENDAR,
+  achievementCalendar
 });
 
 // Thunks
@@ -494,6 +501,22 @@ export const getAchievementByDate = (start_date: string, end_date: string) => as
   dispatch(receiveAchievementByDate(response.data));
 };
 
+export const getAchievementCalendar = (date: Date) => async (dispatch: Dispatch) => {
+  const currentDate = new Date(date);
+  const prevDate = new Date(currentDate);
+  prevDate.setMonth(currentDate.getMonth() - 1);
+  const prevYear = prevDate.getFullYear();
+  const prevMonth = prevDate.getMonth() + 1;
+  const prevMonthStart = `${prevYear}${prevMonth.toString().padStart(2, '0')}01`;
+  const nextDate = new Date(currentDate);
+  nextDate.setMonth(currentDate.getMonth() + 1);
+  const nextYear = nextDate.getFullYear();
+  const nextMonth = nextDate.getMonth() + 1;
+  const nextMonthEnd = `${nextYear}${nextMonth.toString().padStart(2, '0')}15`;
+  const data = await PlanAPIUtil.getAchievementByDate(prevMonthStart, nextMonthEnd);
+  dispatch(receiveAchievementCalendar(data.data));
+};
+
 // Reducer
 const reducer = (state: PlanState = initialState, action: ActionTypes) => {
   Object.freeze(state);
@@ -599,6 +622,11 @@ const reducer = (state: PlanState = initialState, action: ActionTypes) => {
       return {
         ...newState,
         achievementByDate: action.achievementByDate
+      };
+    case RECEIVE_ACHIEVEMENT_CALENDAR:
+      return {
+        ...newState,
+        achievementCalendar: action.achievementCalendar
       };
     default:
       return state;
