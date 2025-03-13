@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { useDispatch, useSelector } from 'react-redux';
-import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
-import dayjs from 'dayjs';
-import { getPlanByDate, getPlanByMonth, initializeDates, getPlanCalendar, setDayPlanBOM, setFilterQuery, setIsExpanded, setPlanData } from '../../../modules/plan';
-import { ThunkDispatch } from 'redux-thunk';
+
+import React, { useEffect, useState } from 'react';
+import { getPlanByDate, getPlanByMonth, getPlanCalendar, initializeDates, setDayPlanBOM, setFilterQuery, setIsExpanded, setPlanData } from '../../../modules/plan';
+import { useDispatch, useSelector } from 'react-redux';
+
 import { AnyAction } from 'redux';
+import DatePicker from 'react-datepicker';
 import { IAppState } from '../../../types';
+import { ThunkDispatch } from 'redux-thunk';
+import dayjs from 'dayjs';
+import styled from 'styled-components';
 
 const HeaderWrapper = styled.div`
   padding: 0.75rem;
@@ -162,6 +164,7 @@ const DateHeader: React.FC<DateHeaderProps> = () => {
     const today = new Date();
     setSelectedDate(today);
     dispatch(setDayPlanBOM({ day: today }));
+    dispatch(getPlanCalendar(today.getFullYear().toString(), (today.getMonth() + 1).toString()));
   };
 
   const handleSearch = async () => {

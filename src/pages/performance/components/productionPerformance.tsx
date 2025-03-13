@@ -1,12 +1,19 @@
-import React, { useState, useEffect } from "react";
+import "react-datepicker/dist/react-datepicker.css"; // Required styles for react-datepicker
+
+import React, { useEffect, useState } from "react";
+import { getAchievementByDate, getAchievementCalendar } from "../../../modules/plan";
+import { useDispatch, useSelector } from "react-redux";
+
+import { AnyAction } from "redux";
 // import { TextField, Button, Table, TableHead, TableRow, TableCell, TableBody, Paper } from "@mui/material";
 import DatePicker from "react-datepicker"; // react-datepicker library for date picking
-import "react-datepicker/dist/react-datepicker.css"; // Required styles for react-datepicker
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
+import { IAppState } from "../../../types";
+import { ThunkDispatch } from "redux-thunk";
 import axios from "axios";
+import dayjs from "dayjs";
 import styled from "styled-components";
 import { useTranslation } from "react-i18next";
+import utc from "dayjs/plugin/utc";
 
 dayjs.extend(utc); // Enable UTC plugin
 
@@ -16,7 +23,11 @@ const ProductionPerformance = () => {
   const [endDay, setEndDay] = useState(new Date());
   const [keyword, setKeyword] = useState("");
   const [list, setList] = useState([]);
+  const achievementByDate = useSelector((state: IAppState) => state.plan.achievementByDate);
+  const achievementCalendar = useSelector((state: IAppState) => state.plan.achievementCalendar);
+  const [dateAttributes, setDateAttributes] = useState<any[]>([]);
 
+  const dispatch = useDispatch<ThunkDispatch<IAppState, any, AnyAction>>();
   useEffect(() => {
     const today = new Date();
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -24,26 +35,53 @@ const ProductionPerformance = () => {
 
     setStartDay(startOfMonth);
     setEndDay(endOfMonth);
-    fetchData(startOfMonth, endOfMonth, keyword);
+    dispatch(getAchievementCalendar(startOfMonth));
+    // fetchData(startOfMonth, endOfMonth, keyword);
   }, []);
 
-  const fetchData = async (start: Date, end: Date, name: string) => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/dashboard/master`, {
-        params: {
-          start_date: dayjs(start).format("YYYY-MM-DD"),
-          end_date: dayjs(end).format("YYYY-MM-DD"),
-          name,
-        },
-      });
-      setList(response.data);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+
+  useEffect(() => {
+    if (achievementByDate && achievementByDate.length > 0) {
+      setList(achievementByDate);
     }
-  };
+  }, [achievementByDate]);
+  useEffect(() => {
+
+    console.log(achievementCalendar);
+    if (achievementCalendar && achievementCalendar.length > 0) {
+      console.log(achievementCalendar);
+      const dates = achievementCalendar.map((obj: any) => {
+        const year = parseInt(obj.workdate.substring(0, 4));
+        const month = parseInt(obj.workdate.substring(5, 7)) -1; // Month is 0-based
+        const day = parseInt(obj.workdate.substring(8, 10));
+        return new Date(year, month, day);
+      });
+      setDateAttributes([{ dot: true, dates: dates }]);
+    }
+  }, [achievementCalendar]);
+
+  // const fetchData = async (start: Date, end: Date, name: string) => {
+  //   try {
+  //     const response = await axios.get(`${process.env.REACT_APP_API_URL}/dashboard/master`, {
+  //       params: {
+  //         start_date: dayjs(start).format("YYYY-MM-DD"),
+  //         end_date: dayjs(end).format("YYYY-MM-DD"),
+  //         name,
+  //       },
+  //     });
+  //     setList(response.data);
+  //   } catch (error) {
+  //     console.error("Error fetching data:", error);
+  //   }
+  // };
 
   const handleSearch = () => {
-    fetchData(startDay, endDay, keyword);
+    // fetchData(startDay, endDay, keyword);
+    dispatch(getAchievementByDate(dayjs(startDay).format("YYYYMMDD"), dayjs(endDay).format("YYYYMMDD")));
+  };
+
+  const handleMonthChange = (date: Date) => {
+    dispatch(getAchievementCalendar(date));
   };
 
   const formatDate = (dateString: string) => dayjs.utc(dateString).format("YYYY-MM-DD");
@@ -54,17 +92,25 @@ const ProductionPerformance = () => {
     <Container>
       <Sheet>
         <Label>{t("performance.startDate")}</Label>
-        <DatePicker
-          selected={startDay}
-          onChange={(date: Date | null) => setStartDay(date || new Date())}
-          dateFormat="yyyy.MM.dd"
-        />
+        <DatePickerWrapper>
+          <DatePicker
+            selected={startDay}
+            onChange={(date: Date | null) => setStartDay(date || new Date())}
+            onMonthChange={handleMonthChange}
+            dateFormat="yyyy.MM.dd"
+            highlightDates={dateAttributes[0]?.dates}
+          />
+        </DatePickerWrapper>
         <Label>{t("performance.endDate")}</Label>
-        <DatePicker
-          selected={endDay}
-          onChange={(date: Date | null) => setEndDay(date || new Date())}
-          dateFormat="yyyy.MM.dd"
-        />
+        <DatePickerWrapper>
+          <DatePicker
+            selected={endDay}
+            onChange={(date: Date | null) => setEndDay(date || new Date())}
+            onMonthChange={handleMonthChange}
+            dateFormat="yyyy.MM.dd"
+            highlightDates={dateAttributes[0]?.dates}
+          />
+        </DatePickerWrapper>
         <Input
           type="text"
           placeholder={t("performance.searchKeyword")}
@@ -83,11 +129,10 @@ const ProductionPerformance = () => {
             <TableHeader>{t("performance.worker")}</TableHeader>
             <TableHeader>{t("performance.company")}</TableHeader>
             <TableHeader>{t("performance.product")}</TableHeader>
-            <TableHeader>{t("performance.lot")}</TableHeader>
-            <TableHeader>{t("performance.productNumber")}</TableHeader>
             <TableHeader>{t("performance.process")}</TableHeader>
             <TableHeader>{t("performance.facility")}</TableHeader>
             <TableHeader>{t("performance.accomplishment")}</TableHeader>
+            <TableHeader>{t("performance.note")}</TableHeader>
           </tr>
         </thead>
         <tbody>
@@ -100,15 +145,15 @@ const ProductionPerformance = () => {
                 </DateRow>
               ) : null} */}
               <tr>
+                
                 <TableCell>{formatTime(data.workdate)}</TableCell>
                 <TableCell>{data.user_name}</TableCell>
-                <TableCell>{data.company}</TableCell>
+                <TableCell>{data.company_name}</TableCell>
                 <TableCell>{data.product_name}</TableCell>
-                <TableCell>{data.lot}</TableCell>
-                <TableCell>{data.product_unit}</TableCell>
                 <TableCell>{data.process_name}</TableCell>
                 <TableCell>{data.facility_name}</TableCell>
                 <TableCell>{data.accomplishment}</TableCell>
+                <TableCell>{data.note}</TableCell>
               </tr>
             </React.Fragment>
           ))}
@@ -208,3 +253,35 @@ const DateRow = styled.tr`
   }
 `;
 
+const DatePickerWrapper = styled.div`
+  .react-datepicker-wrapper {
+    z-index: 999;
+  }
+  .react-datepicker-popper {
+    z-index: 999;
+  }
+
+  .react-datepicker__day--highlighted {
+    position: relative;
+    background-color: transparent;
+    color: black;
+    
+    &:hover {
+      background-color: #f0f0f0;
+    }
+
+    /* Add dot under the date */
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 4px;
+      background-color: #00CCC0;
+      border-radius: 50%;
+    }
+  }
+
+`;

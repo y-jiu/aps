@@ -47,7 +47,8 @@
     "save": "저장",
     "production": "생산 실적 관리",
     "quality": "품질 관리",
-    "productionHistory": "생산 이력 관리"
+    "productionHistory": "생산 이력 관리",
+    "note": "비고"
   },
   "system": {
     "title": "시스템 관리",

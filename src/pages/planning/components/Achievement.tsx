@@ -1,14 +1,15 @@
-import React, { useState, useEffect, memo } from 'react';
-import styled from 'styled-components';
+import React, { memo, useEffect, useState } from 'react';
+import { createAchievement, deleteAchievement, getAchievement, updateAchievement } from '../../../modules/plan';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { AnyAction } from 'redux';
+import { GetUserList } from '../../../modules/user';
+import { IAppState } from '../../../types';
+import { ThunkDispatch } from 'redux-thunk';
 import dayjs from 'dayjs';
+import styled from 'styled-components';
 // import { useAuth } from '../../../hooks/useAuth';
 import { useAchievement } from '../../../hooks/useAchievement';
-import { GetUserList } from '../../../modules/user';
-import { useDispatch, useSelector } from 'react-redux';
-import { IAppState } from '../../../types';
-import { AnyAction } from 'redux';
-import { ThunkDispatch } from 'redux-thunk';
-import { getAchievement, createAchievement, updateAchievement, deleteAchievement } from '../../../modules/plan';
 
 const Modal = styled.div`
   position: fixed;
@@ -201,7 +202,7 @@ const Achievement: React.FC<AchievementProps> = ({ event, onClose, onUpdate }) =
 
   const userList = useSelector((state: IAppState) => state.user.userList);
   const achievements = useSelector((state: IAppState) => state.plan.achievement);
-  console.log(achievements);
+
   const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
   useEffect(() => {
     dispatch(GetUserList());
@@ -235,9 +236,9 @@ const Achievement: React.FC<AchievementProps> = ({ event, onClose, onUpdate }) =
     setEditingId(achievement.id);
     setEditRowData({
       workdate: dayjs(achievement.workdate).format('YYYY-MM-DDTHH:mm'),
-      achievement: achievement.achievement,
+      achievement: achievement.accomplishment,
       note: achievement.note,
-      worker: achievement.worker,
+      worker: achievement.user_id,
     });
   };
 
@@ -253,6 +254,15 @@ const Achievement: React.FC<AchievementProps> = ({ event, onClose, onUpdate }) =
       // }));
       // console.log(newRowData);
 
+      if (newRowData.achievement === '') {
+        alert('실적을 입력해주세요.');
+        return;
+      }
+
+      if (newRowData.worker === '') {
+        alert('작업자를 선택해주세요.');
+        return;
+      }
 
       const data = {
         gantt_id: event.id,
@@ -261,11 +271,22 @@ const Achievement: React.FC<AchievementProps> = ({ event, onClose, onUpdate }) =
         note: newRowData.note,
         user_id: parseInt(newRowData.worker),
       }
+
       // console.log(data);
       dispatch(createAchievement(data));
     } else if (editingId) {
       // await updateAchievement(editingId, editRowData);
       // console.log(editRowData);
+
+      if (editRowData.achievement === '') {
+        alert('실적을 입력해주세요.');
+        return;
+      }
+
+      if (editRowData.worker === '') {
+        alert('작업자를 선택해주세요.');
+        return;
+      }
       const data = {
         id: editingId,
         workdate: new Date(editRowData.workdate),
