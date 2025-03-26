@@ -39,6 +39,10 @@ const ProductionPerformance = () => {
     // fetchData(startOfMonth, endOfMonth, keyword);
   }, []);
 
+  useEffect(() => {
+    handleKeywordSearch();
+  }, [keyword]);
+
 
   useEffect(() => {
     if (achievementByDate && achievementByDate.length > 0) {
@@ -80,6 +84,24 @@ const ProductionPerformance = () => {
     dispatch(getAchievementByDate(dayjs(startDay).format("YYYYMMDD"), dayjs(endDay).format("YYYYMMDD")));
   };
 
+  const handleKeywordSearch = () => {
+    if (!keyword.trim()) {
+      // 키워드가 비어있으면 전체 리스트 표시
+      setList(achievementByDate || []);
+      return;
+    }
+    
+    // 현재 achievementByDate에서 키워드 포함 항목만 필터링
+    const filteredList = (achievementByDate || []).filter((item: any) => {
+      // 모든 필드에서 키워드 검색
+      return Object.values(item).some(
+        (value) => value && String(value).toLowerCase().includes(keyword.toLowerCase())
+      );
+    });
+    
+    setList(filteredList);
+  };
+
   const handleMonthChange = (date: Date) => {
     dispatch(getAchievementCalendar(date));
   };
@@ -116,10 +138,9 @@ const ProductionPerformance = () => {
           placeholder={t("performance.searchKeyword")}
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          onKeyUp={(e) => e.key === "Enter" && handleSearch()}
+          onKeyUp={(e) => e.key === "Enter" && handleKeywordSearch()}
         />
         <Button onClick={handleSearch}>{t("performance.search")}</Button>
-        <SaveButton>{t("performance.save")}</SaveButton>
       </Sheet>
 
       <Table>
