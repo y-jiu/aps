@@ -1,7 +1,4 @@
-import React from 'react';
-import logo from './logo.svg';
 import './App.css';
-import { useTranslation } from 'react-i18next';
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Monitoring from './pages/monitoring'
 import Planning from './pages/planning'
@@ -16,13 +13,12 @@ import Login from './pages/login';
 import ProcessManagement from './pages/processmanagement';
 
 function App() {
-  
+
   return (
     <div>
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
-          
           <Route element={<DefaultLayout />}>
             <Route index element={<RouteToInformation />} />
             <Route path="/information/*" element={<Information />} />
